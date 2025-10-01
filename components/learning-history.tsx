@@ -1,4 +1,5 @@
 import { Eye, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 interface HistoryItem {
   day: string
@@ -57,10 +58,10 @@ export function LearningHistory() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-[#6582e6] text-lg font-medium">Riwayat Belajar</h3>
-        <button className="flex items-center text-[#6582e6] text-sm hover:underline">
+        <Link href="/riwayat" className="flex items-center text-[#6582e6] text-sm hover:underline">
           Lihat selengkapnya
           <ArrowRight className="w-4 h-4 ml-1" />
-        </button>
+        </Link>
       </div>
 
       <div className="space-y-3">

@@ -9,7 +9,7 @@ export function Navigation() {
   const pathname = usePathname()
 
   const navItems = [
-    { name: "Dashboard", href: "/" },
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Progress", href: "/progress" },
     { name: "Riwayat", href: "/riwayat" },
     { name: "Roadmap", href: "/roadmap" },
