@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation"
 import { ChevronRight } from "lucide-react"
+import { ProtectedRoute } from "@/components/protected-route"
 
-export default function PemilihanPembelajaran() {
+function PemilihanPembelajaran() {
   const router = useRouter()
 
   const roadmaps = [
@@ -48,5 +49,13 @@ export default function PemilihanPembelajaran() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <ProtectedRoute>
+      <PemilihanPembelajaran />
+    </ProtectedRoute>
   )
 }

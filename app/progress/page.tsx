@@ -7,6 +7,7 @@ import { ChevronDown, Send, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { ProtectedRoute } from "@/components/protected-route"
 
 const materials = [
   {
@@ -29,7 +30,7 @@ const materials = [
   },
 ]
 
-export default function ProgressPage() {
+function ProgressPageContent() {
   const [selectedMaterial, setSelectedMaterial] = useState("")
   const [progressText, setProgressText] = useState("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -246,5 +247,13 @@ export default function ProgressPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProgressPage() {
+  return (
+    <ProtectedRoute>
+      <ProgressPageContent />
+    </ProtectedRoute>
   )
 }

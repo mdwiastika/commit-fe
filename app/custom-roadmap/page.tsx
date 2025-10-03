@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, X } from "lucide-react"
+import { ProtectedRoute } from "@/components/protected-route"
 
 interface Material {
   id: string
@@ -10,7 +11,7 @@ interface Material {
   description: string
 }
 
-export default function CustomRoadmap() {
+function CustomRoadmapContent() {
   const router = useRouter()
   const [roadmapTitle, setRoadmapTitle] = useState("")
   const [materials, setMaterials] = useState<Material[]>([])
@@ -146,5 +147,13 @@ export default function CustomRoadmap() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CustomRoadmap() {
+  return (
+    <ProtectedRoute>
+      <CustomRoadmapContent />
+    </ProtectedRoute>
   )
 }

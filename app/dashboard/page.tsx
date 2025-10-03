@@ -2,8 +2,9 @@ import { Navigation } from "@/components/navigation"
 import { ProgressSection } from "@/components/progress-section"
 import { StatsCards } from "@/components/stats-cards"
 import { LearningHistory } from "@/components/learning-history"
+import { ProtectedRoute } from "@/components/protected-route"
 
-export default function Dashboard() {
+function DashboardContent() {
   return (
     <div className="min-h-screen bg-[#fafafa] p-6">
       <Navigation />
@@ -16,5 +17,13 @@ export default function Dashboard() {
         <LearningHistory />
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   )
 }

@@ -1,12 +1,15 @@
 "use client"
 
-import { User } from "lucide-react"
+import { User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function Navigation() {
   const pathname = usePathname()
+  const { logout } = useAuth()
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard" },
@@ -35,10 +38,20 @@ export function Navigation() {
             ))}
           </div>
         </div>
-        <Button variant="ghost" className="text-[#6582e6] hover:bg-[#6582e6]/10">
-          <User className="w-4 h-4 mr-2" />
-          User
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="text-[#6582e6] hover:bg-[#6582e6]/10">
+              <User className="w-4 h-4 mr-2" />
+              User
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </nav>
   )
