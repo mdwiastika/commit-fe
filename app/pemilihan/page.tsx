@@ -1,18 +1,57 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronRight } from "lucide-react"
 import { ProtectedRoute } from "@/components/protected-route"
 
+type Roadmap = {
+  id: string
+  name: string
+  description: string
+}
+
 function PemilihanPembelajaran() {
   const router = useRouter()
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const roadmaps = [
-    { id: "ui-ux-1", title: "UI/UX Design", materials: 40 },
-    { id: "frontend-1", title: "Frontend Developer", materials: 40 },
-    { id: "backend-1", title: "Backend Developer", materials: 40 },
-    { id: "mobile-1", title: "Mobile Developer", materials: 40 },
-  ]
+  useEffect(() => {
+    const fetchRoadmaps = async () => {
+      try {
+        const token = localStorage.getItem("auth_token") // token dari login
+        if (!token) {
+          console.error("Token tidak ditemukan")
+          return
+        }
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+        const res = await fetch(`${API_URL}/roadmaps`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        })
+
+        if (!res.ok) {
+          throw new Error("Gagal mengambil data roadmap")
+        }
+
+        const json = await res.json()
+        setRoadmaps(json.data) // ambil field "data" dari response
+      } catch (err) {
+        console.error("Error:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRoadmaps()
+  }, [])
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>
+  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6">
@@ -40,8 +79,8 @@ function PemilihanPembelajaran() {
               className="bg-white border-2 border-[#6582e6] rounded-2xl p-6 flex items-center justify-between hover:bg-[#f0f3ff] transition-colors"
             >
               <div className="text-left">
-                <h3 className="text-xl font-bold mb-1">{roadmap.title}</h3>
-                <p className="text-[#5f6265]">{roadmap.materials} Materi</p>
+                <h3 className="text-xl font-bold mb-1">{roadmap.name}</h3>
+                <p className="text-[#5f6265]">{roadmap.description}</p>
               </div>
               <ChevronRight className="w-6 h-6 text-[#5f6265] flex-shrink-0" />
             </button>

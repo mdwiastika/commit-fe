@@ -14,10 +14,12 @@ interface Material {
 function CustomRoadmapContent() {
   const router = useRouter()
   const [roadmapTitle, setRoadmapTitle] = useState("")
+  const [roadmapDescription, setRoadmapDescription] = useState("") // ✅ new field
   const [materials, setMaterials] = useState<Material[]>([])
   const [currentMaterial, setCurrentMaterial] = useState({ title: "", description: "" })
   const [isAddingMaterial, setIsAddingMaterial] = useState(false)
   const [showSnackbar, setShowSnackbar] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSaveMaterial = () => {
     if (currentMaterial.title.trim()) {
@@ -36,20 +38,67 @@ function CustomRoadmapContent() {
     setMaterials(materials.filter((m) => m.id !== id))
   }
 
-  const handleSaveRoadmap = () => {
-    if (!roadmapTitle.trim() || materials.length === 0) {
+  const handleSaveRoadmap = async () => {
+    if (!roadmapTitle.trim() || !roadmapDescription.trim() || materials.length === 0) {
       setShowSnackbar(true)
       setTimeout(() => setShowSnackbar(false), 3000)
       return
     }
-    router.push("/komitmen")
+
+    try {
+      setLoading(true)
+      const token = localStorage.getItem("auth_token")
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.")
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+
+      // 1. Create Roadmap
+      const res = await fetch(`${API_URL}/roadmaps`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: roadmapTitle,
+          description: roadmapDescription,
+        }),
+      })
+
+      if (!res.ok) throw new Error("Gagal membuat roadmap")
+      const roadmapData = await res.json()
+      const roadmapId = roadmapData.data.id
+
+      // 2. Create Roadmap Details
+      for (const material of materials) {
+        await fetch(`${API_URL}/roadmap-details`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: material.title,
+            description: material.description,
+            roadmap_id: roadmapId,
+          }),
+        })
+      }
+
+      router.push("/komitmen")
+    } catch (error) {
+      console.error(error)
+      alert("Terjadi kesalahan saat menyimpan roadmap")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#fafafa] p-6">
       {showSnackbar && (
         <div className="fixed top-4 right-4 bg-[#fbbf24] text-gray-900 px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-top">
-          Harap masukkan judul roadmap dan minimal satu materi
+          Harap masukkan judul, deskripsi roadmap, dan minimal satu materi
         </div>
       )}
 
@@ -59,21 +108,34 @@ function CustomRoadmapContent() {
           <h1 className="text-[#6582e6] text-3xl font-bold">Buat Roadmap</h1>
           <button
             onClick={handleSaveRoadmap}
-            className="bg-[#6582e6] text-white px-6 py-3 rounded-lg hover:bg-[#5571d5] transition-colors font-medium"
+            disabled={loading}
+            className="bg-[#6582e6] text-white px-6 py-3 rounded-lg hover:bg-[#5571d5] transition-colors font-medium disabled:opacity-50"
           >
-            Simpan Roadmap dan Mulai Belajar
+            {loading ? "Menyimpan..." : "Simpan Roadmap dan Mulai Belajar"}
           </button>
         </div>
 
         {/* Roadmap Title Input */}
         <div className="mb-8">
-          <label className="block text-lg font-semibold mb-3">Masukkan Judul Roadmap</label>
+          <label className="block text-lg font-semibold mb-3">Judul Roadmap</label>
           <input
             type="text"
             value={roadmapTitle}
             onChange={(e) => setRoadmapTitle(e.target.value)}
             className="w-full border-b-2 border-gray-300 bg-transparent py-2 focus:outline-none focus:border-[#6582e6] transition-colors"
             placeholder="Contoh: UI/UX Design untuk Pemula"
+          />
+        </div>
+
+        {/* Roadmap Description Input */}
+        <div className="mb-8">
+          <label className="block text-lg font-semibold mb-3">Deskripsi Roadmap</label>
+          <textarea
+            value={roadmapDescription}
+            onChange={(e) => setRoadmapDescription(e.target.value)}
+            className="w-full border-b-2 border-gray-300 bg-transparent py-2 focus:outline-none focus:border-[#6582e6] transition-colors resize-none"
+            rows={3}
+            placeholder="Deskripsi singkat roadmap ini"
           />
         </div>
 
