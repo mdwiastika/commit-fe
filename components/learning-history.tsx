@@ -34,7 +34,7 @@ const historyData = [
   },
 ]
 
-export function LearningHistory() {
+export function LearningHistory({ history }: { history?: any[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

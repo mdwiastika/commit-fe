@@ -2,23 +2,31 @@
 import { Flame, Wallet, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-export function StatsCards() {
+export function StatsCards({
+  streak,
+  balance,
+  donation,
+}: {
+  streak?: number
+  balance?: string
+  donation?: string
+}) {
   const cards = [
     {
       title: 'Streak belajar',
-      value: '16',
+      value: streak?.toString() || '0',
       icon: <Flame className="w-5 h-5 text-[#ea3829]" />,
       color: 'bg-white/70',
     },
     {
       title: 'Dompet Komitmen',
-      value: 'Rp 345.000,00-',
+      value: balance || '0',
       icon: <Wallet className="w-5 h-5 text-[#4b63d0]" />,
       color: 'bg-white/70',
     },
     {
       title: 'Donasi',
-      value: 'Rp 345.000,00-',
+      value: donation || '0',
       icon: <Heart className="w-5 h-5 text-[#ea3829]" />,
       color: 'bg-white/70',
     },
