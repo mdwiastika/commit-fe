@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { ProtectedRoute } from '@/components/protected-route'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Footer } from '@/components/footer'
+import { LoadingSpinner } from '@/components/loading-spinner'
+import { useCheckTransactionStatus } from '@/hooks/checkTransactionStatus'
 
 const materials = [
   {

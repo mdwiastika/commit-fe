@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronRight, Map, Sparkles } from 'lucide-react'
 import { ProtectedRoute } from '@/components/protected-route'
+import { useCheckTransactionStatus } from '@/hooks/checkTransactionStatus'
+import { LoadingSpinner } from '@/components/loading-spinner'
 
 type Roadmap = {
   id: string
@@ -15,6 +17,12 @@ function PemilihanPembelajaran() {
   const router = useRouter()
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
   const [loading, setLoading] = useState(true)
+
+  const { transactionCheckLoading } = useCheckTransactionStatus()
+
+  if (transactionCheckLoading || loading) {
+    return <LoadingSpinner />
+  }
 
   useEffect(() => {
     const fetchRoadmaps = async () => {

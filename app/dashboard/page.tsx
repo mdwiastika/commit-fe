@@ -1,11 +1,19 @@
+'use client'
 import { Navigation } from '@/components/navigation'
 import { ProgressSection } from '@/components/progress-section'
 import { StatsCards } from '@/components/stats-cards'
 import { LearningHistory } from '@/components/learning-history'
 import { ProtectedRoute } from '@/components/protected-route'
 import { Footer } from '@/components/footer'
+import { useCheckTransactionStatus } from '@/hooks/checkTransactionStatus'
+import { LoadingSpinner } from '@/components/loading-spinner'
 
 function DashboardContent() {
+  const { transactionCheckLoading } = useCheckTransactionStatus()
+
+  if (transactionCheckLoading) {
+    return <LoadingSpinner />
+  }
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white pt-34 px-6">
       <Navigation currentPage="dashboard" />

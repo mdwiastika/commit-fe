@@ -8,10 +8,12 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { getToken, login as loginApi } from '@/lib/auth'
 import { useAuth } from '@/contexts/auth-context'
+import { useCheckTransactionStatus } from '@/hooks/checkTransactionStatus'
+import { LoadingSpinner } from '@/components/loading-spinner'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isAuthenticated, token } = useAuth()
+  const { login, isAuthenticated, token, authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -19,46 +21,15 @@ export default function LoginPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const { transactionCheckLoading } = useCheckTransactionStatus()
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      const fetchTransactions = async (token: string) => {
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        const response = await fetch(`${API_URL}/transactions`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          method: 'GET',
-        })
-        if (!response.ok) {
-          throw new Error('Failed to fetch transactions')
-        }
-        return response.json()
-      }
-
-      const run = async () => {
-        try {
-          const response = await fetchTransactions(token as string)
-          if (response.data) {
-            if (response.data.status !== 'paid') {
-              router.push('/pemilihan')
-            } else {
-              router.push('/dashboard')
-            }
-          } else {
-            router.push('/pemilihan')
-          }
-        } catch (err) {
-          console.error(err)
-        }
-      }
-
-      run()
-    }
-  }, [isAuthenticated, router])
-
+  if (authLoading || transactionCheckLoading) {
+    return <LoadingSpinner />
+  }
+  if (isAuthenticated) {
+    // Tampilkan spinner, biarkan useCheckTransactionStatus redirect
+    return <LoadingSpinner />
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
