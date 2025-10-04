@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function Home() {
   const router = useRouter()
@@ -10,9 +10,9 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/pemilihan")
+      router.push('/pemilihan')
     } else {
-      router.push("/login")
+      router.push('/login')
     }
   }, [isAuthenticated, router])
 

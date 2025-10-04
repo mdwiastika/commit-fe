@@ -6,6 +6,7 @@ import { getToken, removeToken, setToken as saveToken } from "@/lib/auth"
 
 interface AuthContextType {
   isAuthenticated: boolean
+  authLoading: boolean
   token: string | null
   login: (token: string) => void
   logout: () => void
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
@@ -23,6 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedToken) {
       setToken(storedToken)
       setIsAuthenticated(true)
+      setAuthLoading(false)
+    } else {
+      setAuthLoading(false)
     }
   }, [])
 
@@ -39,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login")
   }
 
-  return <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ isAuthenticated, token, login, logout, authLoading }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
