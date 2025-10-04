@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import {
   Eye,
@@ -15,56 +15,95 @@ import {
 } from 'lucide-react'
 import { Footer } from '@/components/footer'
 
-interface HistoryItem {
-  id: number
-  day: number
-  title: string
-  date: string
-  materials: string
-  earnings: number
-  type: 'success' | 'failed'
-  summary: string
-  file: string
-  quizScore: number
-  passed: boolean
+export interface ValidationType {
+  id: string
+  name: string
 }
 
-const historyData: HistoryItem[] = [
-  {
-    id: 1,
-    day: 14,
-    title: 'Design Principles, Prototypes',
-    date: '4 September 2025',
-    materials: 'Design Principle, Prototyping',
-    earnings: 2560,
-    type: 'success',
-    summary:
-      'Hari ini saya mempelajari prinsip-prinsip desain yang fundamental dan membuat beberapa prototype untuk memahami konsep lebih dalam.',
-    file: 'DesignPrinciple.pdf',
-    quizScore: 61,
-    passed: true,
-  },
-  {
-    id: 2,
-    day: 13,
-    title: '',
-    date: '3 September 2025',
-    materials: '',
-    earnings: -2560,
-    type: 'failed',
-    summary: 'Tidak ada aktivitas pembelajaran hari ini.',
-    file: '',
-    quizScore: 0,
-    passed: false,
-  },
-]
+export interface TransactionDetail {
+  id: string
+  day: number
+  transaction_id: string
+  amount: number
+  validation_type_id: string | null
+  validationType: ValidationType | null
+  quiz: any[any]
+  roadmap_details: any[any] | null
+  summary: any[any]
+  created_at: string
+  updated_at: string
+}
+
+export interface Roadmap {
+  id: string
+  name: string
+  description: string
+}
+
+export interface Transaction {
+  id: string
+  total_days: number
+  created_at: string
+  updated_at: string
+  details: any[]
+}
+
+export interface RiwayatInformation {
+  transaction: Transaction
+  complete_roadmap_details: number
+  count_failed_transaction: number
+  running_days: number
+}
+
+export interface TransactionResponse {
+  status: boolean
+  message: string
+  data: RiwayatInformation
+}
 
 export default function RiwayatPage() {
-  const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(
-    null,
-  )
+  const [
+    selectedHistory,
+    setSelectedHistory,
+  ] = useState<TransactionDetail | null>(null)
+  const [history, setHistory] = useState<RiwayatInformation | null>(null)
 
-  const openModal = (item: HistoryItem) => setSelectedHistory(item)
+  useEffect(() => {
+    fetchRiwayatData()
+  }, [])
+
+  const fetchRiwayatData = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.error('Token tidak ditemukan')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+      const response = await fetch(`${API_URL}/riwayats`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Gagal mengambil informasi riwayat')
+      }
+
+      const result = await response.json()
+      console.log(result)
+      setHistory(result.data)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const openModal = (item: TransactionDetail, day: number) => {
+    setSelectedHistory({ ...item, day })
+  }
   const closeModal = () => setSelectedHistory(null)
 
   return (
@@ -82,22 +121,29 @@ export default function RiwayatPage() {
 
         {/* Stats Cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {[
-            { label: 'Total Hari Challenge', value: 16 },
-            { label: 'Hari Berjalan', value: 16 },
-            { label: 'Materi Dipelajari', value: 12 },
-            { label: 'Hari Gagal', value: 4 },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border border-gray-100 rounded-2xl p-6 flex flex-col justify-center items-center"
-            >
-              <span className="text-gray-500 text-sm">{stat.label}</span>
-              <span className="text-3xl font-bold text-[#4b63d0]">
-                {stat.value}
-              </span>
-            </div>
-          ))}
+          {history &&
+            [
+              {
+                label: 'Total Hari Challenge',
+                value: history.transaction.total_days,
+              },
+              { label: 'Hari Berjalan', value: history.running_days },
+              {
+                label: 'Materi Dipelajari',
+                value: history.complete_roadmap_details,
+              },
+              { label: 'Hari Gagal', value: history.running_days },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border border-gray-100 rounded-2xl p-6 flex flex-col justify-center items-center"
+              >
+                <span className="text-gray-500 text-sm">{stat.label}</span>
+                <span className="text-3xl font-bold text-[#4b63d0]">
+                  {stat.value}
+                </span>
+              </div>
+            ))}
         </div>
 
         {/* History List */}
@@ -107,12 +153,12 @@ export default function RiwayatPage() {
           </h2>
 
           <div className="space-y-4">
-            {historyData.map((item) => (
+            {history?.transaction.details.map((item, i) => (
               <div
                 key={item.id}
-                onClick={() => openModal(item)}
+                onClick={() => openModal(item, i + 1)}
                 className={`p-5 rounded-2xl border transition-all cursor-pointer hover:translate-y-[-2px] hover:shadow-lg ${
-                  item.type === 'success'
+                  item.amount > 0
                     ? 'border-green-200 bg-green-50 hover:bg-green-100'
                     : 'border-red-200 bg-red-50 hover:bg-red-100'
                 }`}
@@ -120,24 +166,34 @@ export default function RiwayatPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Day {item.day}{' '}
-                      {item.title && (
-                        <span className="text-gray-700">– {item.title}</span>
+                      Day {i + 1}{' '}
+                      {item.roadmap_details && (
+                        <span className="text-gray-700">
+                          :{' '}
+                          {item.roadmap_details
+                            .map((rd: any) => rd.name)
+                            .join(', ')}
+                        </span>
                       )}
                     </h3>
                     <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
-                      <Calendar className="w-4 h-4" /> {item.date}
+                      <Calendar className="w-4 h-4" />{' '}
+                      {new Date(item.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Eye className="w-5 h-5 text-gray-600" />
                     <span
                       className={`font-semibold ${
-                        item.earnings > 0 ? 'text-green-600' : 'text-red-600'
+                        item.amount > 0 ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
-                      {item.earnings > 0 ? '+' : '-'}Rp{' '}
-                      {Math.abs(item.earnings).toLocaleString('id-ID')}
+                      {item.amount > 0 ? '+' : '-'}Rp{' '}
+                      {Math.abs(item.amount).toLocaleString('id-ID')}
                     </span>
                   </div>
                 </div>
@@ -160,38 +216,43 @@ export default function RiwayatPage() {
 
             <div className="space-y-5">
               <h3 className="text-2xl font-bold text-gray-900">
-                Hari {selectedHistory.day}
+                Day {selectedHistory.day}
               </h3>
               <div className="text-gray-600">
                 <p className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-blue-600" />
-                  {selectedHistory.date}
+                  {new Date(selectedHistory.created_at).toLocaleDateString(
+                    'id-ID',
+                    {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    },
+                  )}
                 </p>
                 <p className="mt-2">
                   <strong>Materi:</strong>{' '}
-                  {selectedHistory.materials || 'Tidak ada'}
+                  {(selectedHistory &&
+                    selectedHistory.roadmap_details
+                      .map((rd: any) => rd.name)
+                      .join(', ')) ||
+                    'Tidak ada'}
                 </p>
               </div>
 
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Rangkuman</h4>
                 <p className="text-gray-700 leading-relaxed text-sm">
-                  {selectedHistory.summary}
+                  {selectedHistory.summary.body || 'Tidak ada rangkuman'}
                 </p>
               </div>
 
-              {selectedHistory.file && (
-                <button className="w-full bg-blue-100 text-[#4b63d0] hover:bg-blue-200 py-2 rounded-lg flex items-center justify-center gap-2 transition">
-                  <Download className="w-4 h-4" /> {selectedHistory.file}
-                </button>
-              )}
-
-              {selectedHistory.type === 'success' && (
+              {selectedHistory.quiz.score >= 60 && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700">
-                    Skor Kuis: {selectedHistory.quizScore}%
+                    Skor Kuis: {selectedHistory.quiz.score}%
                   </span>
-                  {selectedHistory.passed ? (
+                  {selectedHistory.quiz.score >= 60 ? (
                     <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">
                       Lulus
                     </span>

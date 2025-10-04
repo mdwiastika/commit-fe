@@ -3,37 +3,6 @@ import { Eye, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-const historyData = [
-  {
-    day: 'Day 14:',
-    title: 'Wireframing, Typography',
-    date: '4 Sept 2025',
-    amount: '+Rp 2.560',
-    isPositive: true,
-  },
-  {
-    day: 'Day 13:',
-    title: '',
-    date: '3 Sept 2025',
-    amount: '-Rp 2.560',
-    isPositive: false,
-  },
-  {
-    day: 'Day 12:',
-    title: 'Wireframing',
-    date: '2 Sept 2025',
-    amount: '+Rp 2.560',
-    isPositive: true,
-  },
-  {
-    day: 'Day 11:',
-    title: 'Design Principles, Prototypes',
-    date: '1 Sept 2025',
-    amount: '+Rp 2.560',
-    isPositive: true,
-  },
-]
-
 export function LearningHistory({ history }: { history: any[] }) {
   return (
     <motion.div
