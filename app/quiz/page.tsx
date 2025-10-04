@@ -1,42 +1,117 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 
-interface Question {
-  id: number
+interface QuizOption {
+  id: string
+  quiz_detail_id: string
+  answer: string
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  created_by: string
+  updated_by: string | null
+  deleted_by: string | null
+}
+
+interface QuizDetail {
+  id: string
+  quiz_id: string
   question: string
-  options: string[]
-  correctAnswer: number
-  explanation?: string
+  user_answer_quiz_detail_option_id: string | null
+  correct_answer_quiz_detail_option_id: string
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  created_by: string
+  updated_by: string | null
+  deleted_by: string | null
+  options: QuizOption[]
 }
 
 interface QuizData {
-  questions: Question[]
-  timeLimit: number
+  transaction_detail_id: string
+  score: number
+  validation_type_id: string
+  id: string
+  created_by: string
+  updated_by: string
+  updated_at: string
+  created_at: string
+  quiz_details: QuizDetail[]
 }
 
 export default function QuizPage() {
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [answers, setAnswers] = useState<number[]>([])
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [answers, setAnswers] = useState<string[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
-  const [showExplanation, setShowExplanation] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const storedQuizData = sessionStorage.getItem("quizData")
+    const storedQuizResults = sessionStorage.getItem('quizResults')
+    if (storedQuizResults) {
+      const dataQuizResults = JSON.parse(storedQuizResults)
+      const today = new Date()
+      const quizDate = new Date(dataQuizResults.date)
+      if (
+        dataQuizResults.date &&
+        quizDate.getDate() === today.getDate() &&
+        quizDate.getMonth() === today.getMonth() &&
+        quizDate.getFullYear() === today.getFullYear()
+      ) {
+        if (dataQuizResults.passed) {
+          router.push('/quiz/results')
+          return
+        } else {
+          sessionStorage.removeItem('quizData')
+          sessionStorage.removeItem('quizResults')
+          fetchQuizData()
+          return
+        }
+      }
+    }
+    const storedQuizData = sessionStorage.getItem('quizData')
     if (storedQuizData) {
-      const data = JSON.parse(storedQuizData)
+      const data: QuizData = JSON.parse(storedQuizData)
       setQuizData(data)
-      setTimeLeft(data.timeLimit)
-      setAnswers(new Array(data.questions.length).fill(-1))
+      setTimeLeft(1800) // 30 menit
+      setAnswers(new Array(data.quiz_details.length).fill(''))
     } else {
-      router.push("/progress")
+      router.push('/dashboard')
     }
   }, [router])
+
+  const fetchQuizData = async () => {
+    const token = localStorage.getItem('auth_token')
+    if (!token) return console.error('Token tidak ditemukan')
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const responseQuiz = await fetch(`${API_URL}/transactions/generate-quiz`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!responseQuiz.ok) {
+      throw new Error('Gagal mengambil data quiz')
+    }
+
+    const quizData = await responseQuiz.json()
+    console.log('Quiz Data:', quizData.data)
+    if (quizData.status === true) {
+      sessionStorage.setItem('quizData', JSON.stringify(quizData.data))
+      router.push('/quiz')
+    } else {
+      router.push('/progress')
+    }
+  }
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -50,130 +125,187 @@ export default function QuizPage() {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  const handleAnswerSelect = (answerIndex: number) => {
-    setSelectedAnswer(answerIndex)
+  const handleAnswerSelect = (optionId: string) => {
+    setSelectedAnswer(optionId)
     const newAnswers = [...answers]
-    newAnswers[currentQuestion] = answerIndex
+    newAnswers[currentQuestion] = optionId
     setAnswers(newAnswers)
-
-    if (quizData && answerIndex !== quizData.questions[currentQuestion].correctAnswer) {
-      setShowExplanation(true)
-      console.log("[v0] Wrong answer selected, showing explanation")
-    } else {
-      setShowExplanation(false)
-      console.log("[v0] Correct answer selected, hiding explanation")
-    }
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!quizData || selectedAnswer === null) return
 
-    if (currentQuestion < quizData.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setSelectedAnswer(answers[currentQuestion + 1] !== -1 ? answers[currentQuestion + 1] : null)
-      setShowExplanation(false)
-    } else {
-      handleSubmitQuiz()
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.error('Token tidak ditemukan')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      // Kirim jawaban ke backend
+      const response = await fetch(`${API_URL}/transactions/question-quiz`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          quiz_detail_id: currentQ.id,
+          answer: selectedAnswer,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit answer')
+      }
+
+      // Lanjut ke pertanyaan berikutnya atau submit quiz
+      if (currentQuestion < quizData.quiz_details.length - 1) {
+        setCurrentQuestion(currentQuestion + 1)
+        setSelectedAnswer(
+          answers[currentQuestion + 1] !== ''
+            ? answers[currentQuestion + 1]
+            : null,
+        )
+      } else {
+        handleSubmitQuiz()
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error)
+      // Tetap lanjut meskipun ada error (opsional, bisa diubah sesuai kebutuhan)
+      if (currentQuestion < quizData.quiz_details.length - 1) {
+        setCurrentQuestion(currentQuestion + 1)
+        setSelectedAnswer(
+          answers[currentQuestion + 1] !== ''
+            ? answers[currentQuestion + 1]
+            : null,
+        )
+      } else {
+        handleSubmitQuiz()
+      }
     }
   }
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     if (!quizData) return
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      console.error('Token tidak ditemukan')
+      return
+    }
 
-    let correctAnswers = 0
-    answers.forEach((answer, index) => {
-      if (answer === quizData.questions[index].correctAnswer) {
-        correctAnswers++
-      }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+    const response = await fetch(`${API_URL}/transactions/submit-quiz`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
     })
+    if (!response.ok) {
+      console.error('Failed to submit quiz')
+      return
+    }
 
-    const score = Math.round((correctAnswers / quizData.questions.length) * 100)
+    const result = await response.json()
+    const resultData = result.data
+    const score = resultData.score
+    const correctAnswers = resultData.correct_answers
+    const totalQuestions = resultData.total_questions
+    const explanations = resultData.explanations
+    const date = new Date()
 
     sessionStorage.setItem(
-      "quizResults",
+      'quizResults',
       JSON.stringify({
         score,
         correctAnswers,
-        totalQuestions: quizData.questions.length,
+        totalQuestions,
         passed: score >= 60,
+        explanations,
+        date: date.toISOString(),
       }),
     )
 
-    router.push("/quiz/results")
+    router.push('/quiz/results')
   }
 
   if (!quizData) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Loading quiz...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#eef3ff] to-white">
+        <p className="text-gray-600 text-lg">Loading quiz...</p>
       </div>
     )
   }
 
-  const currentQ = quizData.questions[currentQuestion]
+  const currentQ = quizData.quiz_details[currentQuestion]
 
   return (
-    <div className="min-h-screen bg-[#fafafa] p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-6 bg-gradient-to-b from-[#eef3ff] to-white">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-2xl font-medium text-[#6582e6] mb-8 leading-relaxed">
-            Jawab pertanyaan berikut untuk memastikan kamu memahami materi yang dipelajari
+          <h1 className="text-3xl font-bold text-[#4b63d0] mb-4">
+            Quiz Materi
           </h1>
+          <p className="text-gray-700">
+            Jawab pertanyaan berikut untuk memastikan kamu memahami materi.
+          </p>
 
-          <div className="flex justify-between items-center mb-8">
-            <span className="text-[#6582e6] text-lg font-medium">{formatTime(timeLeft)}</span>
-            <span className="text-[#6582e6] text-lg font-medium">
-              {currentQuestion + 1}/{quizData.questions.length}
-            </span>
-          </div>
-        </div>
-
-        <div className="text-center mb-12">
-          <h2 className="text-xl font-medium text-[#6582e6] mb-8">{currentQ.question}</h2>
-        </div>
-
-        <div className="space-y-4 mb-8">
-          {currentQ.options.map((option, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                selectedAnswer === index ? "bg-[#ceeee3] border-2 border-[#0bac74]" : "bg-gray-200 hover:bg-gray-300"
-              }`}
-              onClick={() => handleAnswerSelect(index)}
-            >
-              <div className="flex items-center">
-                <div
-                  className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${
-                    selectedAnswer === index ? "border-[#0bac74] bg-[#0bac74]" : "border-gray-400"
-                  }`}
-                >
-                  {selectedAnswer === index && <div className="w-3 h-3 rounded-full bg-white"></div>}
-                </div>
-                <span className="text-gray-800">{option}</span>
-              </div>
+          <div className="mt-6 flex justify-between items-center text-white font-semibold text-lg">
+            <div className="px-4 py-2 bg-gradient-to-r from-[#5c74e6] to-[#7f97ff] rounded-full shadow-md">
+              ⏱ {formatTime(timeLeft)}
             </div>
-          ))}
+            <div className="px-4 py-2 bg-gradient-to-r from-[#0bac74] to-[#29c97c] rounded-full shadow-md">
+              {currentQuestion + 1}/{quizData.quiz_details.length}
+            </div>
+          </div>
         </div>
 
-        {showExplanation && currentQ.explanation && (
-          <div className="mb-8 p-6 bg-yellow-100 border-2 border-yellow-500 rounded-lg">
-            <h3 className="font-semibold text-yellow-900 mb-2">Penjelasan:</h3>
-            <p className="text-yellow-900 leading-relaxed">{currentQ.explanation}</p>
+        {/* Question Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 transition-all hover:shadow-2xl">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            {currentQ.question}
+          </h2>
+
+          <div className="space-y-4">
+            {currentQ.options.map((option) => {
+              const isSelected = selectedAnswer === option.id
+
+              return (
+                <div
+                  key={option.id}
+                  className={`p-4 rounded-xl cursor-pointer border transition-all flex items-center gap-4
+                    ${
+                      isSelected
+                        ? 'bg-blue-100 border-blue-400'
+                        : 'bg-gray-100 hover:bg-gray-200 border-gray-300'
+                    }
+                  `}
+                  onClick={() => handleAnswerSelect(option.id)}
+                >
+                  {isSelected && <Check className="w-5 h-5 text-blue-600" />}
+                  <span className="text-gray-800">{option.answer}</span>
+                </div>
+              )
+            })}
           </div>
-        )}
+        </div>
 
         <div className="flex justify-center">
           <Button
             onClick={handleNext}
             disabled={selectedAnswer === null}
-            className="bg-[#6582e6] hover:bg-[#5a73d9] text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-[#5c74e6] to-[#7f97ff] text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-md"
           >
-            {currentQuestion === quizData.questions.length - 1 ? "Selesai" : "Berikutnya"}
+            {currentQuestion === quizData.quiz_details.length - 1
+              ? 'Selesai'
+              : 'Berikutnya'}
           </Button>
         </div>
       </div>

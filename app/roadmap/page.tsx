@@ -4,35 +4,63 @@ import { Footer } from '@/components/footer'
 import { Navigation } from '@/components/navigation'
 import { ChevronRight, Star, Target } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export default function RoadmapPage() {
-  const currentRoadmap = {
-    id: 'ui-ux-design',
-    title: 'UI/UX Design',
-    materials: 40,
-  }
-
-  const completedRoadmaps = [
-    {
-      id: 'python-programming',
-      title: 'Python Programming',
-      materials: 40,
-      completionText: 'Lulus dengan menyelesaikan 60% materi',
+  const [currentRoadmap, setCurrentRoadmap] = useState(
+    {} as {
+      id: string
+      name: string
+      roadmap_details_count: number
     },
-  ]
+  )
+  const [otherRoadmaps, setOtherRoadmaps] = useState(
+    [] as {
+      id: string
+      name: string
+      roadmap_details_count: number
+    }[],
+  )
 
-  const otherRoadmaps = [
-    { id: 'ui-ux-1', title: 'UI/UX Design', materials: 40 },
-    { id: 'ui-ux-2', title: 'UI/UX Design', materials: 40 },
-    { id: 'ui-ux-3', title: 'UI/UX Design', materials: 40 },
-    { id: 'ui-ux-4', title: 'UI/UX Design', materials: 40 },
-  ]
+  useEffect(() => {
+    fetchRoadmaps()
+  }, [])
+
+  const fetchRoadmaps = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.error('Token tidak ditemukan')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+      const response = await fetch(`${API_URL}/roadmaps-dashboard`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Gagal mengambil data roadmap')
+      }
+
+      const result = await response.json()
+      console.log(result)
+      setCurrentRoadmap(result.data.current_roadmap)
+      setOtherRoadmaps(result.data.roadmaps)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#e9edff] to-white px-6">
       <Navigation currentPage="roadmap" />
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-6 py-12 min-h-[calc(100vh-170px)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-12 pt-22">
           <h1 className="text-4xl font-bold text-[#4b63d0] tracking-tight">
@@ -52,10 +80,10 @@ export default function RoadmapPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {currentRoadmap.title}
+                    {currentRoadmap.name}
                   </h3>
                   <p className="text-gray-600">
-                    {currentRoadmap.materials} Materi
+                    {currentRoadmap.roadmap_details_count} Materi
                   </p>
                 </div>
                 <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
@@ -65,7 +93,7 @@ export default function RoadmapPage() {
         </section>
 
         {/* Completed Roadmaps */}
-        <section className="mb-14">
+        {/* <section className="mb-14">
           <h2 className="text-2xl font-semibold text-[#4b63d0] mb-6 flex items-center gap-2">
             Roadmap Diselesaikan
           </h2>
@@ -92,7 +120,7 @@ export default function RoadmapPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* Other Roadmaps */}
         <section>
@@ -110,10 +138,10 @@ export default function RoadmapPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {roadmap.title}
+                        {roadmap.name}
                       </h3>
                       <p className="text-gray-600">
-                        {roadmap.materials} Materi
+                        {roadmap.roadmap_details_count} Materi
                       </p>
                     </div>
                     <ChevronRight className="w-6 h-6 text-[#4b63d0]" />

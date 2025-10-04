@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
+import Image from 'next/image'
 
 export function Navigation({ currentPage }: { currentPage?: string }) {
   const pathname = usePathname()
@@ -49,7 +50,14 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
       <div className="flex items-center justify-between w-full space-x-32">
         {/* Logo + Links */}
         <div className="flex items-center space-x-32">
-          <div className="text-[#4b63d0] font-extrabold text-xl tracking-tight">
+          <div className="text-[#4b63d0] font-extrabold text-xl tracking-tight flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="Commit Logo"
+              width={30}
+              height={30}
+              className="inline-block"
+            />
             Commit<span className="text-[#8ca4ff]">.</span>
           </div>
 

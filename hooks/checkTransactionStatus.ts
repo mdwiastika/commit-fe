@@ -6,6 +6,7 @@ export function useCheckTransactionStatus() {
   const { isAuthenticated, token } = useAuth()
   const router = useRouter()
   const [transactionCheckLoading, setTransactionCheckLoading] = useState(true)
+  const { logout } = useAuth()
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -23,7 +24,10 @@ export function useCheckTransactionStatus() {
         method: 'GET',
       })
       if (!response.ok) {
-        throw new Error('Failed to fetch transactions')
+        if (response.status === 500) {
+          logout()
+          throw new Error('Failed to fetch transactions')
+        }
       }
       return response.json()
     }

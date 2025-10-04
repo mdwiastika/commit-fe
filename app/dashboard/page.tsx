@@ -88,7 +88,7 @@ function DashboardContent() {
     <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white pt-34 px-6">
       <Navigation currentPage="dashboard" />
 
-      <div className="max-w-5xl mx-auto space-y-10">
+      <div className="max-w-5xl mx-auto space-y-10 min-h-[calc(100vh-300px)]">
         <h1 className="text-[#4b63d0] text-4xl font-extrabold tracking-tight">
           {dashboardInfo.active_transaction?.roadmap?.name}
         </h1>

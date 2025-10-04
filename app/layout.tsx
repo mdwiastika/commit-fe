@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Created with Next.js',
   generator: 'Next.js',
   applicationName: 'Commit',
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 export default function RootLayout({

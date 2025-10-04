@@ -1,61 +1,50 @@
+'use client'
 import { Footer } from '@/components/footer'
 import { Navigation } from '@/components/navigation'
+import { formatRupiah } from '@/helper/formatRupiah'
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DonasiPage() {
-  const distributedDonations = [
-    {
-      id: 1,
-      name: 'Dompet Dhuafa',
-      amount: 'Rp 32.450.213',
-      image: '/people-helping-community-donation.jpg',
-    },
-    {
-      id: 2,
-      name: 'Rumah Yatim',
-      amount: 'Rp 12.380.293',
-      image: '/children-orphanage-care.jpg',
-    },
-    {
-      id: 3,
-      name: 'Beasiswa Pendidikan',
-      amount: 'Rp 17.839.247',
-      image: '/graduation-ceremony-students.jpg',
-    },
-    {
-      id: 4,
-      name: 'Sumbangan Palestina',
-      amount: 'Rp 24.489.223',
-      image: '/humanitarian-aid-palestine.jpg',
-    },
-  ]
+  const [donations, setDonations] = useState<any[]>([])
+  const [donationHistories, setDonationHistories] = useState<any[]>([])
+  const [donationInfo, setDonationInfo] = useState({
+    total_donors: 0,
+    total_distributed: 0,
+    total_recipients: 0,
+  })
 
-  const donationHistory = [
-    {
-      id: 1,
-      name: 'Dompet Dhuafa',
-      date: '4 September 2025',
-      amount: 'Rp 3.750.000',
-    },
-    {
-      id: 2,
-      name: 'Beasiswa Pendidikan',
-      date: '18 Agustus 2025',
-      amount: 'Rp 3.750.000',
-    },
-    {
-      id: 3,
-      name: 'Rumah Yatim',
-      date: '11 Agustus 2025',
-      amount: 'Rp 3.750.000',
-    },
-    {
-      id: 4,
-      name: 'Sumbangan Palestina',
-      date: '29 Juni 2025',
-      amount: 'Rp 3.750.000',
-    },
-  ]
+  useEffect(() => {
+    fetchDonationData()
+  }, [])
+
+  const fetchDonationData = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.error('Token tidak ditemukan')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+      const response = await fetch(`${API_URL}/donations`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await response.json()
+      setDonations(data.data.donations)
+      setDonationHistories(data.data.donation_histories)
+      setDonationInfo({
+        total_donors: data.data.user_count,
+        total_distributed: data.data.total_donated,
+        total_recipients: data.data.sum_donating_company,
+      })
+    } catch (error) {
+      console.error('Error fetching donation data:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#4b63d0]/10 via-white to-gray-50 px-6">
@@ -75,13 +64,21 @@ export default function DonasiPage() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {[
-            { title: 'Total Donatur', value: '1.342', icon: '🤝' },
+            {
+              title: 'Total Donatur',
+              value: donationInfo.total_donors,
+              icon: '🤝',
+            },
             {
               title: 'Donasi Terdistribusi',
-              value: 'Rp 6.345.000,00-',
+              value: formatRupiah(donationInfo.total_distributed),
               icon: '💸',
             },
-            { title: 'Lembaga Penerima', value: '11', icon: '🏢' },
+            {
+              title: 'Lembaga Penerima',
+              value: donationInfo.total_recipients,
+              icon: '🏢',
+            },
           ].map((item, i) => (
             <div
               key={i}
@@ -103,7 +100,7 @@ export default function DonasiPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {distributedDonations.map((donation) => (
+            {donations.map((donation) => (
               <div
                 key={donation.id}
                 className="bg-white rounded-2xl shadow-md hover:shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-1"
@@ -121,7 +118,7 @@ export default function DonasiPage() {
                     {donation.name}
                   </h3>
                   <p className="text-lg font-semibold text-[#4b63d0]">
-                    {donation.amount}
+                    {formatRupiah(donation.total)}
                   </p>
                 </div>
               </div>
@@ -151,20 +148,26 @@ export default function DonasiPage() {
 
           {/* History List */}
           <div className="space-y-3">
-            {donationHistory.map((item) => (
+            {donationHistories.map((item) => (
               <div
                 key={item.id}
                 className="bg-white/90 backdrop-blur-md rounded-xl p-4 flex items-center justify-between border border-gray-100 hover:shadow-md transition-all duration-200"
               >
                 <div>
                   <h3 className="font-medium text-gray-900 mb-1">
-                    {item.name}
+                    {item.donation.name}
                   </h3>
-                  <p className="text-sm text-gray-500">{item.date}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(item.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="font-semibold text-[#4b63d0]">
-                    {item.amount}
+                    {formatRupiah(item.amount)}
                   </span>
                   <button className="p-2 hover:bg-[#4b63d0]/10 rounded-lg transition-colors">
                     <Eye className="w-4 h-4 text-[#4b63d0]" />

@@ -110,7 +110,7 @@ export default function RiwayatPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-6">
       <Navigation currentPage="riwayat" />
 
-      <main className="max-w-6xl mx-auto px-6 py-12 min-h-screen">
+      <main className="max-w-6xl mx-auto px-6 py-12 min-h-[calc(100vh-170px)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-10 pt-22">
           <h1 className="text-4xl font-bold text-[#4b63d0] tracking-tight">
@@ -193,7 +193,7 @@ export default function RiwayatPage() {
                       }`}
                     >
                       {item.amount > 0 ? '+' : '-'}Rp{' '}
-                      {Math.abs(item.amount).toLocaleString('id-ID')}
+                      {Math.floor(item.amount).toLocaleString('id-ID')}
                     </span>
                   </div>
                 </div>
