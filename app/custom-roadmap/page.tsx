@@ -1,9 +1,10 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Plus, X } from "lucide-react"
-import { ProtectedRoute } from "@/components/protected-route"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Plus, X } from 'lucide-react'
+import { ProtectedRoute } from '@/components/protected-route'
+import { useTransactionStore } from '@/stores/transaction-store'
 
 interface Material {
   id: string
@@ -13,13 +14,17 @@ interface Material {
 
 function CustomRoadmapContent() {
   const router = useRouter()
-  const [roadmapTitle, setRoadmapTitle] = useState("")
-  const [roadmapDescription, setRoadmapDescription] = useState("") // ✅ new field
+  const [roadmapTitle, setRoadmapTitle] = useState('')
+  const [roadmapDescription, setRoadmapDescription] = useState('') // ✅ new field
   const [materials, setMaterials] = useState<Material[]>([])
-  const [currentMaterial, setCurrentMaterial] = useState({ title: "", description: "" })
+  const [currentMaterial, setCurrentMaterial] = useState({
+    title: '',
+    description: '',
+  })
   const [isAddingMaterial, setIsAddingMaterial] = useState(false)
   const [showSnackbar, setShowSnackbar] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { setRoadmapId, data } = useTransactionStore()
 
   const handleSaveMaterial = () => {
     if (currentMaterial.title.trim()) {
@@ -29,7 +34,7 @@ function CustomRoadmapContent() {
         description: currentMaterial.description,
       }
       setMaterials([...materials, newMaterial])
-      setCurrentMaterial({ title: "", description: "" })
+      setCurrentMaterial({ title: '', description: '' })
       setIsAddingMaterial(false)
     }
   }
@@ -39,7 +44,11 @@ function CustomRoadmapContent() {
   }
 
   const handleSaveRoadmap = async () => {
-    if (!roadmapTitle.trim() || !roadmapDescription.trim() || materials.length === 0) {
+    if (
+      !roadmapTitle.trim() ||
+      !roadmapDescription.trim() ||
+      materials.length === 0
+    ) {
       setShowSnackbar(true)
       setTimeout(() => setShowSnackbar(false), 3000)
       return
@@ -47,17 +56,18 @@ function CustomRoadmapContent() {
 
     try {
       setLoading(true)
-      const token = localStorage.getItem("auth_token")
-      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.")
+      const token = localStorage.getItem('auth_token')
+      if (!token)
+        throw new Error('Token tidak ditemukan. Silakan login kembali.')
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
 
       // 1. Create Roadmap
       const res = await fetch(`${API_URL}/roadmaps`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: roadmapTitle,
@@ -65,17 +75,18 @@ function CustomRoadmapContent() {
         }),
       })
 
-      if (!res.ok) throw new Error("Gagal membuat roadmap")
+      if (!res.ok) throw new Error('Gagal membuat roadmap')
       const roadmapData = await res.json()
       const roadmapId = roadmapData.data.id
+      setRoadmapId(roadmapId)
 
       // 2. Create Roadmap Details
       for (const material of materials) {
         await fetch(`${API_URL}/roadmap-details`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             name: material.title,
@@ -85,10 +96,10 @@ function CustomRoadmapContent() {
         })
       }
 
-      router.push("/komitmen")
+      router.push('/komitmen')
     } catch (error) {
       console.error(error)
-      alert("Terjadi kesalahan saat menyimpan roadmap")
+      alert('Terjadi kesalahan saat menyimpan roadmap')
     } finally {
       setLoading(false)
     }
@@ -111,13 +122,15 @@ function CustomRoadmapContent() {
             disabled={loading}
             className="bg-[#6582e6] text-white px-6 py-3 rounded-lg hover:bg-[#5571d5] transition-colors font-medium disabled:opacity-50"
           >
-            {loading ? "Menyimpan..." : "Simpan Roadmap dan Mulai Belajar"}
+            {loading ? 'Menyimpan...' : 'Simpan Roadmap dan Mulai Belajar'}
           </button>
         </div>
 
         {/* Roadmap Title Input */}
         <div className="mb-8">
-          <label className="block text-lg font-semibold mb-3">Judul Roadmap</label>
+          <label className="block text-lg font-semibold mb-3">
+            Judul Roadmap
+          </label>
           <input
             type="text"
             value={roadmapTitle}
@@ -129,7 +142,9 @@ function CustomRoadmapContent() {
 
         {/* Roadmap Description Input */}
         <div className="mb-8">
-          <label className="block text-lg font-semibold mb-3">Deskripsi Roadmap</label>
+          <label className="block text-lg font-semibold mb-3">
+            Deskripsi Roadmap
+          </label>
           <textarea
             value={roadmapDescription}
             onChange={(e) => setRoadmapDescription(e.target.value)}
@@ -145,7 +160,10 @@ function CustomRoadmapContent() {
 
           {/* Existing Materials */}
           {materials.map((material, index) => (
-            <div key={material.id} className="bg-white border-2 border-gray-200 rounded-xl p-4 mb-4 relative">
+            <div
+              key={material.id}
+              className="bg-white border-2 border-gray-200 rounded-xl p-4 mb-4 relative"
+            >
               <button
                 onClick={() => handleRemoveMaterial(material.id)}
                 className="absolute top-4 right-4 text-red-500 hover:text-red-700"
@@ -166,14 +184,24 @@ function CustomRoadmapContent() {
               <input
                 type="text"
                 value={currentMaterial.title}
-                onChange={(e) => setCurrentMaterial({ ...currentMaterial, title: e.target.value })}
+                onChange={(e) =>
+                  setCurrentMaterial({
+                    ...currentMaterial,
+                    title: e.target.value,
+                  })
+                }
                 className="w-full border-b-2 border-gray-300 bg-transparent py-2 mb-6 focus:outline-none focus:border-[#6582e6] transition-colors"
                 placeholder="Contoh: Design Principles"
               />
               <h3 className="font-semibold mb-4">Deskripsi</h3>
               <textarea
                 value={currentMaterial.description}
-                onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
+                onChange={(e) =>
+                  setCurrentMaterial({
+                    ...currentMaterial,
+                    description: e.target.value,
+                  })
+                }
                 className="w-full border-b-2 border-gray-300 bg-transparent py-2 mb-6 focus:outline-none focus:border-[#6582e6] transition-colors resize-none"
                 rows={3}
                 placeholder="Deskripsi singkat tentang materi ini"
@@ -182,7 +210,7 @@ function CustomRoadmapContent() {
                 <button
                   onClick={() => {
                     setIsAddingMaterial(false)
-                    setCurrentMaterial({ title: "", description: "" })
+                    setCurrentMaterial({ title: '', description: '' })
                   }}
                   className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                 >

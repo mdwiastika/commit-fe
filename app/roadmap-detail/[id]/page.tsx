@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BookOpen, Loader2 } from 'lucide-react'
+import { useTransactionStore } from '@/stores/transaction-store'
 
 interface RoadmapDetail {
   id: string
@@ -25,6 +26,7 @@ export default function RoadmapDetailPage({
   const [roadmapDetails, setRoadmapDetails] = useState<RoadmapDetail[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { setRoadmapId, data } = useTransactionStore()
 
   useEffect(() => {
     const fetchRoadmapDetails = async () => {
@@ -59,6 +61,11 @@ export default function RoadmapDetailPage({
     fetchRoadmapDetails()
   }, [id])
 
+  const handleRoadmapSelect = (roadmapId: string) => {
+    setRoadmapId(roadmapId)
+    router.push('/komitmen')
+  }
+
   return (
     <div className="min-h-screen bg-[#fafafa] px-6 py-10">
       <div className="max-w-5xl mx-auto">
@@ -77,7 +84,7 @@ export default function RoadmapDetailPage({
             </div>
 
             <button
-              onClick={() => router.push('/komitmen')}
+              onClick={() => handleRoadmapSelect(id)}
               className="mt-6 md:mt-0 bg-[#6582e6] text-white px-7 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-[2px] hover:bg-[#5571d5] transition-all duration-200 font-medium"
             >
               Pelajari sekarang

@@ -4,11 +4,12 @@ import type React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Info, PiggyBank, ChevronRight } from 'lucide-react'
+import { useTransactionStore } from '@/stores/transaction-store'
 
 export default function PembayaranPage() {
   const router = useRouter()
   const [amount, setAmount] = useState(50000)
-  const days = 32 // contoh nilai (bisa diganti dengan state global nanti)
+  const { setAmountTransaction, data } = useTransactionStore()
   const quickAmounts = [
     10000,
     30000,
@@ -29,10 +30,71 @@ export default function PembayaranPage() {
   }
 
   const handleContinue = () => {
-    router.push('/sukses')
+    setAmountTransaction(amount)
+    fetchTransaction().then((snapToken) => {
+      if (snapToken) {
+        window.snap.pay(snapToken, {
+          onSuccess: function (result: any) {
+            console.log('success', result)
+            router.push('/sukses')
+          },
+          onPending: function (result: any) {
+            console.log('pending', result)
+            alert('Pembayaran sedang diproses. Silakan tunggu.')
+            // router.push('/sukses')
+          },
+          onError: function (result: any) {
+            console.log('error', result)
+            alert('Terjadi kesalahan pada pembayaran. Silakan coba lagi.')
+          },
+          onClose: function () {
+            alert(
+              'Anda menutup popup pembayaran tanpa menyelesaikan pembayaran',
+            )
+          },
+        })
+      } else {
+        alert('Gagal mendapatkan snap token. Silakan coba lagi.')
+      }
+    })
   }
 
-  const dailyAmount = (amount / days).toFixed(2)
+  const fetchTransaction = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        alert('Token tidak ditemukan. Silakan login kembali.')
+        router.push('/login')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${API_URL}/transactions/deposit-roadmap`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: amount,
+          roadmap_id: data.roadmap_id,
+          total_days: data.total_days,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Gagal membuat transaksi Midtrans')
+      }
+
+      const result = await response.json()
+      return result.data.snap_token
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Terjadi kesalahan saat memproses pembayaran.')
+    }
+  }
+
+  const dailyAmount = (amount / data.total_days).toFixed(2)
   const percentage = ((amount - 10000) / (300000 - 10000)) * 100
 
   return (
@@ -101,7 +163,7 @@ export default function PembayaranPage() {
             <span className="font-bold text-[#6582e6]">
               {amount.toLocaleString('id-ID')}
             </span>{' '}
-            untuk {days} hari →{' '}
+            untuk {data.total_days} hari →{' '}
             <span className="font-semibold">Rp {dailyAmount}/hari</span>
           </p>
         </div>

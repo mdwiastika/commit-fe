@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, CalendarDays } from 'lucide-react'
+import { useTransactionStore } from '@/stores/transaction-store'
 
 export default function KomitmenPage() {
   const router = useRouter()
@@ -10,6 +11,7 @@ export default function KomitmenPage() {
   const [customDuration, setCustomDuration] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [estimatedDate, setEstimatedDate] = useState('')
+  const { setTotalDays, data } = useTransactionStore()
 
   useEffect(() => {
     const duration = showCustomInput
@@ -32,6 +34,10 @@ export default function KomitmenPage() {
 
   const handleContinue = () => {
     if (showCustomInput && Number(customDuration) < 21) return
+    const duration = showCustomInput
+      ? Number.parseInt(customDuration) || 0
+      : selectedDuration
+    setTotalDays(duration)
     router.push('/pembayaran')
   }
 

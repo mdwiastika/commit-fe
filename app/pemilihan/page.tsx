@@ -20,10 +20,6 @@ function PemilihanPembelajaran() {
 
   const { transactionCheckLoading } = useCheckTransactionStatus()
 
-  if (transactionCheckLoading || loading) {
-    return <LoadingSpinner />
-  }
-
   useEffect(() => {
     const fetchRoadmaps = async () => {
       try {
@@ -57,6 +53,10 @@ function PemilihanPembelajaran() {
 
     fetchRoadmaps()
   }, [])
+
+  if (transactionCheckLoading || loading) {
+    return <LoadingSpinner />
+  }
 
   if (loading) {
     return (

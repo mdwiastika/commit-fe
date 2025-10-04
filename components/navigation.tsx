@@ -1,21 +1,18 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
 import { User, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { motion } from 'framer-motion'
 
-export function Navigation({ currentPage }: { currentPage: string }) {
+export function Navigation({ currentPage }: { currentPage?: string }) {
   const pathname = usePathname()
   const { logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -24,6 +21,20 @@ export function Navigation({ currentPage }: { currentPage: string }) {
     { name: 'Roadmap', href: '/roadmap' },
     { name: 'Donasi', href: '/donasi' },
   ]
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <motion.nav
@@ -60,30 +71,37 @@ export function Navigation({ currentPage }: { currentPage: string }) {
           </div>
         </div>
 
-        {/* User Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 text-[#4b63d0] hover:bg-[#e3e9ff]/50 transition-all"
-            >
-              <User className="w-5 h-5" />
-              <span className="hidden sm:inline">Akun</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-48 rounded-xl shadow-lg border border-gray-100"
+        {/* User Dropdown Manual */}
+        <div className="relative" ref={dropdownRef}>
+          <Button
+            variant="ghost"
+            onClick={() => setOpen(!open)}
+            className="flex items-center gap-2 text-[#4b63d0] hover:bg-[#e3e9ff]/50 transition-all"
           >
-            <DropdownMenuItem
-              onClick={logout}
-              className="cursor-pointer text-red-600 hover:text-red-700"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <User className="w-5 h-5" />
+            <span className="hidden sm:inline">Akun</span>
+          </Button>
+
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-[999]"
+              >
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-all rounded-t-xl"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.nav>
   )
