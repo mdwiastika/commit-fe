@@ -1,21 +1,25 @@
-import { Navigation } from "@/components/navigation"
-import { ProgressSection } from "@/components/progress-section"
-import { StatsCards } from "@/components/stats-cards"
-import { LearningHistory } from "@/components/learning-history"
-import { ProtectedRoute } from "@/components/protected-route"
+import { Navigation } from '@/components/navigation'
+import { ProgressSection } from '@/components/progress-section'
+import { StatsCards } from '@/components/stats-cards'
+import { LearningHistory } from '@/components/learning-history'
+import { ProtectedRoute } from '@/components/protected-route'
+import { Footer } from '@/components/footer'
 
 function DashboardContent() {
   return (
-    <div className="min-h-screen bg-[#fafafa] p-6">
-      <Navigation />
+    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white pt-34 px-6">
+      <Navigation currentPage="dashboard" />
 
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-[#6582e6] text-3xl font-bold mb-8">UI/UX Design</h1>
+      <div className="max-w-5xl mx-auto space-y-10">
+        <h1 className="text-[#4b63d0] text-4xl font-extrabold tracking-tight">
+          UI/UX Design
+        </h1>
 
         <ProgressSection />
         <StatsCards />
         <LearningHistory />
       </div>
+      <Footer />
     </div>
   )
 }

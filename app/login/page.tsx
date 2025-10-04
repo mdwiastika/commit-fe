@@ -6,12 +6,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
-import { login as loginApi } from '@/lib/auth'
+import { getToken, login as loginApi } from '@/lib/auth'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, token } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -22,7 +22,40 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/pemilihan')
+      const fetchTransactions = async (token: string) => {
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const response = await fetch(`${API_URL}/transactions`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+        })
+        if (!response.ok) {
+          throw new Error('Failed to fetch transactions')
+        }
+        return response.json()
+      }
+
+      const run = async () => {
+        try {
+          const response = await fetchTransactions(token as string)
+          if (response.data) {
+            if (response.data.status !== 'paid') {
+              router.push('/pemilihan')
+            } else {
+              router.push('/dashboard')
+            }
+          } else {
+            router.push('/pemilihan')
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
+      run()
     }
   }, [isAuthenticated, router])
 

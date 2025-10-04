@@ -1,16 +1,17 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
-import { AuthProvider } from "@/contexts/auth-context"
-import { Suspense } from "react"
-import "./globals.css"
+import type React from 'react'
+import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import { Analytics } from '@vercel/analytics/next'
+import { AuthProvider } from '@/contexts/auth-context'
+import { Suspense } from 'react'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
+  title: 'Commit - Platform Belajar Konsisten',
+  description: 'Created with Next.js',
+  generator: 'Next.js',
+  applicationName: 'Commit',
 }
 
 export default function RootLayout({

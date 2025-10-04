@@ -1,82 +1,69 @@
-"use client"
+'use client'
 
-import type React from "react"
-
-import { Navigation } from "@/components/navigation"
-import { ChevronDown, Send, Upload, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ProtectedRoute } from "@/components/protected-route"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Navigation } from '@/components/navigation'
+import { ChevronDown, Send, Upload, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { ProtectedRoute } from '@/components/protected-route'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Footer } from '@/components/footer'
 
 const materials = [
   {
     id: 1,
-    title: "Design Principles",
-    description: "Description of Design principles",
+    title: 'Design Principles',
+    description: 'Description of Design principles',
     completed: true,
   },
   {
     id: 2,
-    title: "Wireframing",
-    description: "Description of Wireframing",
+    title: 'Wireframing',
+    description: 'Description of Wireframing',
     completed: false,
   },
   {
     id: 3,
-    title: "Typography",
-    description: "Description of Typography",
+    title: 'Typography',
+    description: 'Description of Typography',
     completed: false,
   },
 ]
 
 function ProgressPageContent() {
-  const [selectedMaterial, setSelectedMaterial] = useState("")
-  const [progressText, setProgressText] = useState("")
+  const [selectedMaterial, setSelectedMaterial] = useState('')
+  const [progressText, setProgressText] = useState('')
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [studiedMaterials, setStudiedMaterials] = useState<typeof materials>([])
   const [showSnackbar, setShowSnackbar] = useState(false)
   const router = useRouter()
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file && file.type === "application/pdf") {
-      setUploadedFile(file)
-    }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type === 'application/pdf') setUploadedFile(file)
   }
 
-  const removeFile = () => {
-    setUploadedFile(null)
-  }
+  const removeFile = () => setUploadedFile(null)
 
-  const handleMaterialSelect = (material: (typeof materials)[0]) => {
+  const handleMaterialSelect = (material: typeof materials[0]) => {
     setSelectedMaterial(material.title)
     setIsDropdownOpen(false)
-    if (!studiedMaterials.find((m) => m.id === material.id)) {
+    if (!studiedMaterials.find((m) => m.id === material.id))
       setStudiedMaterials([...studiedMaterials, material])
-    }
   }
 
   const handleSubmit = async () => {
-    if (!selectedMaterial) {
-      setShowSnackbar(true)
-      setTimeout(() => setShowSnackbar(false), 3000)
-      return
-    }
-
-    if (!progressText && !uploadedFile) {
+    if (!selectedMaterial || (!progressText && !uploadedFile)) {
       setShowSnackbar(true)
       setTimeout(() => setShowSnackbar(false), 3000)
       return
     }
 
     try {
-      const response = await fetch("/api/generate-quiz", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch('/api/generate-quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           material: selectedMaterial,
           progress: progressText,
@@ -86,166 +73,177 @@ function ProgressPageContent() {
 
       if (response.ok) {
         const quizData = await response.json()
-        sessionStorage.setItem("quizData", JSON.stringify(quizData))
-        router.push("/quiz")
-      } else {
-        alert("Failed to generate quiz. Please try again.")
-      }
-    } catch (error) {
-      const mockQuizData = {
-        questions: [
-          {
-            id: 1,
-            question: "Apa fungsi utama dari prinsip kontras dalam desain?",
-            options: [
-              "Menekankan perbedaan elemen agar mudah dibedakan",
-              "Memberikan keseimbangan warna agar terlihat seragam",
-              "Mengurangi jumlah warna yang digunakan dalam desain",
-              "Membuat desain terlihat sederhana",
-            ],
-            correctAnswer: 0,
-            explanation:
-              "Kontras dalam desain berfungsi untuk menekankan perbedaan antara elemen-elemen visual sehingga mudah dibedakan dan menciptakan hierarki visual yang jelas.",
-          },
-          {
-            id: 2,
-            question: "Manakah yang merupakan prinsip dasar dalam wireframing?",
-            options: [
-              "Menggunakan warna yang menarik",
-              "Fokus pada struktur dan layout",
-              "Menambahkan animasi yang kompleks",
-              "Menggunakan font yang beragam",
-            ],
-            correctAnswer: 1,
-            explanation:
-              "Wireframing berfokus pada struktur dan layout halaman, bukan pada detail visual seperti warna atau animasi. Tujuannya adalah untuk merencanakan tata letak konten dan fungsionalitas.",
-          },
-        ],
-        timeLimit: 900,
-      }
-
-      sessionStorage.setItem("quizData", JSON.stringify(mockQuizData))
-      router.push("/quiz")
+        sessionStorage.setItem('quizData', JSON.stringify(quizData))
+        router.push('/quiz')
+      } else throw new Error()
+    } catch {
+      router.push('/quiz') // fallback quiz
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] p-6">
-      <Navigation />
+    <div className="min-h-screen bg-gradient-to-b from-[#eef3ff] via-[#fafafa] to-white pt-36 px-6">
+      <Navigation currentPage="progress" />
 
-      {showSnackbar && (
-        <div className="fixed top-6 right-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50 animate-in slide-in-from-top">
-          <p className="font-medium">Peringatan!</p>
-          <p className="text-sm">
-            Silakan pilih materi dan isi progres belajar (tulis atau upload PDF) sebelum melanjutkan.
-          </p>
-        </div>
-      )}
-
-      <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-3xl font-semibold text-[#6582e6] mb-8">Update Progres Belajarmu Hari ini</h1>
-
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium text-[#6582e6]">Pilih Materi yang Kamu Pelajari Hari ini</h2>
-
-          <div className="relative">
-            <div
-              className="w-full p-4 border border-gray-300 rounded-lg bg-white text-gray-700 cursor-pointer flex items-center justify-between"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      <div className="min-h-screen">
+        <AnimatePresence>
+          {showSnackbar && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-6 right-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-lg z-50"
             >
-              <span>{selectedMaterial || "Pilih Materi"}</span>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-500 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-              />
-            </div>
+              <p className="font-semibold">⚠️ Peringatan</p>
+              <p className="text-sm mt-1">
+                Silakan pilih materi dan isi progres belajar (tulis atau upload
+                PDF) sebelum melanjutkan.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                {materials.map((material) => (
-                  <div
-                    key={material.id}
-                    className={`p-4 cursor-pointer hover:opacity-90 ${
-                      material.completed ? "bg-[#ceeee3]" : "bg-gray-200"
-                    } ${material.id !== materials.length ? "border-b border-gray-300" : ""}`}
-                    onClick={() => handleMaterialSelect(material)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-gray-800">
-                          {material.id}: {material.title}
-                        </h3>
-                        <p className="text-sm text-gray-600">{material.description}</p>
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">
-                        {material.completed ? "Sudah dipelajari" : "Belum dipelajari"}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="max-w-4xl mx-auto space-y-10"
+        >
+          <h1 className="text-4xl font-bold text-[#4b63d0] tracking-tight text-center">
+            Update Progres Belajarmu Hari Ini
+          </h1>
 
-        {studiedMaterials.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-medium text-[#6582e6]">Materi yang dipelajari</h2>
-
-            <div className="space-y-3">
-              {studiedMaterials.map((material) => (
-                <div key={material.id} className="p-4 border border-gray-300 rounded-lg bg-white">
-                  <h3 className="font-medium text-gray-800 mb-1">
-                    {material.id}. {material.title}
-                  </h3>
-                  <p className="text-sm text-gray-600">{material.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium text-[#6582e6]">Tuliskan progres belajar</h2>
-
-          <div className="relative">
-            <textarea
-              className="w-full h-32 p-4 border border-gray-300 rounded-lg bg-white resize-none"
-              placeholder="Tulis progres belajar anda..."
-              value={progressText}
-              onChange={(e) => setProgressText(e.target.value)}
-            />
-            <Send className="absolute bottom-4 right-4 w-5 h-5 text-[#6582e6] cursor-pointer" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer text-[#6582e6] hover:text-[#5a73d9]">
-                <Upload className="w-4 h-4" />
-                <span className="text-sm">Upload PDF</span>
-                <input type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
-              </label>
-            </div>
-
-            {uploadedFile && (
-              <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
-                <span className="text-sm text-gray-700">{uploadedFile.name}</span>
-                <button onClick={removeFile} className="text-red-500 hover:text-red-700">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-center pt-6">
-          <Button
-            onClick={handleSubmit}
-            className="bg-[#6582e6] hover:bg-[#5a73d9] text-white px-8 py-3 rounded-lg font-medium"
+          {/* --- Card Wrapper --- */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="p-8 bg-white/70 backdrop-blur-xl border border-[#dce3ff] rounded-3xl shadow-lg space-y-8"
           >
-            Kumpulkan dan Kerjakan Quiz
-          </Button>
-        </div>
+            {/* --- Dropdown Materi --- */}
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-[#4b63d0]">
+                Pilih Materi Hari Ini
+              </h2>
+
+              <div className="relative">
+                <div
+                  className="w-full p-4 border border-[#d9defa] bg-white/80 backdrop-blur-sm rounded-xl cursor-pointer flex items-center justify-between hover:shadow-sm transition-all"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <span className="text-gray-700 font-medium">
+                    {selectedMaterial || 'Pilih Materi'}
+                  </span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-500 transition-transform ${
+                      isDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white/80 backdrop-blur-md border border-[#d9defa] rounded-xl shadow-lg overflow-hidden z-10"
+                    >
+                      {materials.map((material) => (
+                        <div
+                          key={material.id}
+                          onClick={() => handleMaterialSelect(material)}
+                          className={`p-4 cursor-pointer transition-all ${
+                            material.completed
+                              ? 'bg-[#eafaf2] hover:bg-[#dcf7e8]'
+                              : 'hover:bg-[#f3f3f3]'
+                          } ${
+                            material.id !== materials.length
+                              ? 'border-b border-[#e5e8f5]'
+                              : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-semibold text-gray-800">
+                                {material.id}. {material.title}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                {material.description}
+                              </p>
+                            </div>
+                            <span className="text-xs text-gray-700">
+                              {material.completed
+                                ? '✅ Sudah dipelajari'
+                                : '📖 Belum'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* --- Textarea & Upload --- */}
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-[#4b63d0]">
+                Tulis Progres Belajar
+              </h2>
+              <div className="relative">
+                <textarea
+                  value={progressText}
+                  onChange={(e) => setProgressText(e.target.value)}
+                  className="w-full h-32 p-4 bg-white/80 border border-[#d9defa] rounded-xl resize-none focus:ring-2 focus:ring-[#5c74e6] outline-none transition-all"
+                  placeholder="Tulis progres belajarmu hari ini..."
+                />
+                <Send className="absolute bottom-4 right-4 w-5 h-5 text-[#5c74e6] cursor-pointer" />
+              </div>
+
+              <label className="flex items-center gap-2 text-[#4b63d0] font-medium cursor-pointer hover:opacity-80">
+                <Upload className="w-4 h-4" />
+                <span>Upload PDF (opsional)</span>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {uploadedFile && (
+                <div className="flex items-center justify-between p-3 bg-[#f2f4ff] rounded-lg text-sm text-gray-700">
+                  <span>{uploadedFile.name}</span>
+                  <button
+                    onClick={removeFile}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* --- Submit --- */}
+            <div className="flex justify-center pt-6">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-gradient-to-r from-[#5c74e6] to-[#7f97ff] hover:opacity-90 text-white px-10 py-3 rounded-full font-semibold shadow-md transition-all"
+                >
+                  Kumpulkan & Kerjakan Quiz
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
+      <Footer />
     </div>
   )
 }
