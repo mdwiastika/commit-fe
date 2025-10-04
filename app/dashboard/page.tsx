@@ -28,7 +28,7 @@ interface DashboardInfo {
   remaining_days: string
   donation: number
   streak?: number
-  history_details?: any[]
+  history_details: any[]
 }
 
 function DashboardContent() {
@@ -45,6 +45,7 @@ function DashboardContent() {
     },
     donation: 0,
     streak: 0,
+    history_details: [],
   })
 
   const fetchDashboardInfo = async () => {

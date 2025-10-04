@@ -34,7 +34,7 @@ const historyData = [
   },
 ]
 
-export function LearningHistory({ history }: { history?: any[] }) {
+export function LearningHistory({ history }: { history: any[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -55,32 +55,39 @@ export function LearningHistory({ history }: { history?: any[] }) {
       </div>
 
       <div className="space-y-3">
-        {historyData.map((item, i) => (
+        {history.map((item, i) => (
           <motion.div
             key={i}
             whileHover={{ scale: 1.01 }}
             className={`rounded-xl p-4 flex items-center justify-between border border-[#e0e6ff]/60 ${
-              item.isPositive
+              item.amount > 0
                 ? 'bg-gradient-to-r from-[#e7fff5] to-[#f4fff9]'
                 : 'bg-gradient-to-r from-[#fff0ef] to-[#ffe8e7]'
             }`}
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[#121212] font-medium">{item.day}</span>
-                <span className="text-[#5f6265]">{item.title}</span>
+                <span className="text-[#121212] font-medium">Day {i + 1}:</span>
+                <span className="text-[#5f6265]">
+                  {item.roadmap_details.map((rd: any) => rd.name).join(', ')}
+                </span>
               </div>
-              <div className="text-[#7a7d81] text-sm mt-1">{item.date}</div>
+              <div className="text-[#7a7d81] text-sm mt-1">
+                {new Date(item.created_at).toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <Eye className="w-5 h-5 text-[#5f6265]" />
               <span
                 className={`font-semibold ${
-                  item.isPositive ? 'text-[#0bac74]' : 'text-[#ea3829]'
+                  item.amount > 0 ? 'text-[#0bac74]' : 'text-[#ea3829]'
                 }`}
               >
-                {item.amount}
+                Rp {Math.floor(item.amount)}
               </span>
             </div>
           </motion.div>
