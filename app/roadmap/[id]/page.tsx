@@ -1,95 +1,85 @@
 'use client'
 
 import { Navigation } from '@/components/navigation'
+import { useEffect, useState } from 'react'
 
 interface Material {
   id: number
-  title: string
+  name: string
   description: string
-  completed: boolean
+  roadmap: {
+    name: string
+  }
 }
 
-export default async function RoadmapDetailPage({
+export default function RoadmapDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }) {
-  const { id } = await params
+  const { id } = params
+  const [materials, setMaterials] = useState<Material[]>([])
 
-  const materials: Material[] = [
-    {
-      id: 1,
-      title: 'Design Principles',
-      description: 'Description of Design principles',
-      completed: true,
-    },
-    {
-      id: 2,
-      title: 'Wireframing',
-      description: 'Description of wireframing',
-      completed: true,
-    },
-    {
-      id: 3,
-      title: 'Typography',
-      description: 'Description of typography',
-      completed: true,
-    },
-    {
-      id: 4,
-      title: 'Color Theory',
-      description: 'Description of Color Theory',
-      completed: false,
-    },
-    {
-      id: 5,
-      title: 'Prototyping',
-      description: 'Description of Prototyping',
-      completed: false,
-    },
-  ]
+  useEffect(() => {
+    const fetchRoadmapDetails = async (roadmapId: string) => {
+      try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) {
+          console.error('Token tidak ditemukan')
+          return
+        }
+        console.log(roadmapId)
+
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const response = await fetch(
+          `${API_URL}/roadmap-details?roadmap_id=${roadmapId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            method: 'GET',
+          },
+        )
+
+        if (!response.ok) throw new Error('Gagal mengambil data detail roadmap')
+
+        const result = await response.json()
+        setMaterials(result.data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+
+    fetchRoadmapDetails(id)
+  }, [id])
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation currentPage="roadmap" />
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-6 py-8 pt-28">
         <h1 className="text-2xl font-semibold text-primary mb-8">
-          UI/UX Design
+          {materials.length > 0 ? materials[0].roadmap.name : 'Detail Roadmap'}
         </h1>
 
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Semua Materi
           </h2>
-
           <div className="space-y-4">
-            {materials.map((material) => (
+            {materials.map((m, i) => (
               <div
-                key={material.id}
-                className={`rounded-2xl border-2 p-6 ${
-                  material.completed
-                    ? 'border-success bg-success/5'
-                    : 'border-gray-200 bg-white'
-                }`}
+                key={m.id}
+                className={`rounded-2xl border-2 p-6 border-gray-200 bg-white`}
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {material.id}. {material.title}
+                      {i + 1}. {m.name}
                     </h3>
-                    <p className="text-gray-600">{material.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`text-sm font-medium ${
-                        material.completed ? 'text-gray-700' : 'text-gray-500'
-                      }`}
-                    >
-                      {material.completed
-                        ? 'Sudah dipelajari'
-                        : 'Belum dipelajari'}
-                    </span>
+                    <p className="text-gray-600">{m.description}</p>
                   </div>
                 </div>
               </div>
