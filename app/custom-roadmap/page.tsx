@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, ArrowLeft } from 'lucide-react'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useTransactionStore } from '@/stores/transaction-store'
 
@@ -24,7 +24,7 @@ function CustomRoadmapContent() {
   const [isAddingMaterial, setIsAddingMaterial] = useState(false)
   const [showSnackbar, setShowSnackbar] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { setRoadmapId, data } = useTransactionStore()
+  const { setRoadmapId } = useTransactionStore()
 
   const handleSaveMaterial = () => {
     if (currentMaterial.title.trim()) {
@@ -106,23 +106,31 @@ function CustomRoadmapContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] p-6">
+    <div className="min-h-screen bg-[#fafafa] p-6 relative">
       {showSnackbar && (
         <div className="fixed top-4 right-4 bg-[#fbbf24] text-gray-900 px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-top">
           Harap masukkan judul, deskripsi roadmap, dan minimal satu materi
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto">
+      {/* Tombol Back */}
+      <button
+        onClick={() => router.back()}
+        className="absolute top-5 left-5 text-[#6582e6] hover:text-[#5571d5] p-2 rounded-full bg-white shadow-sm border border-gray-200 active:scale-95 transition-all"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+
+      <div className="max-w-4xl mx-auto ">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 mt-16">
           <h1 className="text-[#6582e6] text-3xl font-bold">Buat Roadmap</h1>
           <button
             onClick={handleSaveRoadmap}
             disabled={loading}
-            className="bg-[#6582e6] text-white px-6 py-3 rounded-lg hover:bg-[#5571d5] transition-colors font-medium disabled:opacity-50"
+            className="bg-[#6582e6] text-white px-4 py-2 rounded-lg hover:bg-[#5571d5] transition-colors font-medium text-sm md:text-base disabled:opacity-50"
           >
-            {loading ? 'Menyimpan...' : 'Simpan Roadmap dan Mulai Belajar'}
+            {loading ? 'Menyimpan...' : 'Simpan & Mulai Belajar'}
           </button>
         </div>
 

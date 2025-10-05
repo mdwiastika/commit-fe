@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Loader2 } from 'lucide-react'
+import { BookOpen, Loader2, ArrowLeft } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transaction-store'
 
 interface RoadmapDetail {
@@ -26,7 +26,7 @@ export default function RoadmapDetailPage({
   const [roadmapDetails, setRoadmapDetails] = useState<RoadmapDetail[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const { setRoadmapId, data } = useTransactionStore()
+  const { setRoadmapId } = useTransactionStore()
 
   useEffect(() => {
     const fetchRoadmapDetails = async () => {
@@ -67,10 +67,18 @@ export default function RoadmapDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] px-6 py-10">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#fafafa] px-6 py-10 relative">
+      {/* Tombol Back untuk Mobile */}
+      <button
+        onClick={() => router.back()}
+        className="md:hidden absolute top-6 left-6 bg-white border border-gray-200 p-2 rounded-full shadow-sm hover:shadow-md transition-all"
+      >
+        <ArrowLeft className="w-5 h-5 text-[#4b63d0]" />
+      </button>
+
+      <div className="max-w-5xl mx-auto mt-12 md:mt-0">
         {/* Header Section */}
-        <div className="relative bg-gradient-to-r from-[#e0e7ff] to-[#fafafa] p-8 rounded-2xl border border-[#e0e0e0] shadow-sm mb-10 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-[#e0e7ff] to-[#fafafa] p-8 rounded-2xl border border-[#e0e0e0] shadow-sm mb-10 overflow-hidden animate-fadeSlideIn">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between relative z-10">
             <div>
               <h1 className="text-3xl font-bold text-[#2c2e31] mb-2 flex items-center gap-3">

@@ -3,7 +3,7 @@
 import type React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Info, PiggyBank, ChevronRight } from 'lucide-react'
+import { Info, Wallet, ChevronRight, ArrowLeft } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transaction-store'
 
 export default function PembayaranPage() {
@@ -41,16 +41,13 @@ export default function PembayaranPage() {
           onPending: function (result: any) {
             console.log('pending', result)
             alert('Pembayaran sedang diproses. Silakan tunggu.')
-            // router.push('/sukses')
           },
           onError: function (result: any) {
             console.log('error', result)
             alert('Terjadi kesalahan pada pembayaran. Silakan coba lagi.')
           },
           onClose: function () {
-            alert(
-              'Anda menutup popup pembayaran tanpa menyelesaikan pembayaran',
-            )
+            alert('Anda menutup popup pembayaran tanpa menyelesaikan pembayaran')
           },
         })
       } else {
@@ -82,9 +79,7 @@ export default function PembayaranPage() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Gagal membuat transaksi Midtrans')
-      }
+      if (!response.ok) throw new Error('Gagal membuat transaksi Midtrans')
 
       const result = await response.json()
       return result.data.snap_token
@@ -98,11 +93,19 @@ export default function PembayaranPage() {
   const percentage = ((amount - 10000) / (300000 - 10000)) * 100
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6">
-      <div className="max-w-3xl w-full bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6 relative">
+      {/* Tombol Back untuk Mobile */}
+      <button
+        onClick={() => router.back()}
+        className="md:hidden absolute top-6 left-6 bg-white border border-gray-200 p-2 rounded-full shadow-sm hover:shadow-md transition-all"
+      >
+        <ArrowLeft className="w-5 h-5 text-[#4b63d0]" />
+      </button>
+
+      <div className="max-w-3xl w-full bg-white rounded-2xl mt-12 md:mt-0 shadow-lg p-8 border border-gray-100 animate-fadeSlideIn">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4">
-            <PiggyBank className="w-12 h-12 text-[#6582e6]" />
+            <Wallet className="w-12 h-12 text-[#6582e6]" />
           </div>
           <h1 className="text-3xl font-bold mb-2 text-gray-800">
             Isi Uang Komitmen Belajarmu
@@ -206,7 +209,22 @@ export default function PembayaranPage() {
         </div>
       </div>
 
+      {/* Animation */}
       <style jsx>{`
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeSlideIn {
+          animation: fadeSlideIn 0.4s ease-out;
+        }
+
         input[type='range']::-webkit-slider-thumb {
           appearance: none;
           width: 22px;

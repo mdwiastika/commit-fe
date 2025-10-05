@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, CalendarDays } from 'lucide-react'
+import { ChevronDown, ChevronLeft, CalendarDays } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transaction-store'
 
 export default function KomitmenPage() {
@@ -11,7 +11,7 @@ export default function KomitmenPage() {
   const [customDuration, setCustomDuration] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [estimatedDate, setEstimatedDate] = useState('')
-  const { setTotalDays, data } = useTransactionStore()
+  const { setTotalDays } = useTransactionStore()
 
   useEffect(() => {
     const duration = showCustomInput
@@ -44,14 +44,21 @@ export default function KomitmenPage() {
   const isInvalidCustom = showCustomInput && Number(customDuration) < 21
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-6 animate-fadeIn">
-      <div className="max-w-2xl w-full bg-white shadow-xl rounded-2xl p-8 border border-gray-200 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-6 animate-fadeIn relative">
+      {/* Tombol Back (hanya di mobile) */}
+      <button
+        onClick={() => router.back()}
+        className="absolute top-5 left-5 md:hidden bg-white shadow-md rounded-full p-2 text-indigo-600 hover:bg-indigo-50 active:scale-95 transition"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      <div className="max-w-2xl w-full bg-white shadow-xl rounded-2xl p-8 border mt-12 md:mt-0 border-gray-200 relative overflow-hidden">
         {/* Decorative background accent */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-100 rounded-full opacity-40 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-50 rounded-full opacity-30 blur-2xl" />
 
         <div className="text-center mb-10 relative z-10">
-          {/* <div className="text-5xl mb-4">📘</div> */}
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Tentukan Durasi Belajarmu
           </h1>
@@ -150,7 +157,8 @@ export default function KomitmenPage() {
         </div>
       </div>
 
-      <style jsx global>{`
+      {/* Animasi lokal */}
+      <style jsx>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

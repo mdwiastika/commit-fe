@@ -292,7 +292,7 @@ export default function QuizPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-[#4b63d0] mb-4">
-            Quiz Materi
+            Kuis Materi
           </h1>
           <p className="text-gray-700">
             Jawab pertanyaan berikut untuk memastikan kamu memahami materi.

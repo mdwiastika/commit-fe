@@ -292,7 +292,7 @@ function ProgressPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-16 md:pt-34 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-16 md:pt-34 pb-24 md:pb-4">
       <Navigation currentPage="progress" />
 
       <div className="min-h-[calc(100vh-315px)]">
@@ -444,7 +444,7 @@ function ProgressPageContent() {
                   disabled={isSubmitting}
                   className="bg-gradient-to-r from-[#5c74e6] to-[#7f97ff] hover:opacity-90 text-white px-10 py-3 rounded-full font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Memproses...' : 'Kumpulkan & Kerjakan Quiz'}
+                  {isSubmitting ? 'Memproses...' : 'Kumpulkan & Kerjakan Kuis'}
                 </Button>
               </motion.div>
             </div>

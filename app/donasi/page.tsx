@@ -1,4 +1,5 @@
 'use client'
+
 import { Footer } from '@/components/footer'
 import { Navigation } from '@/components/navigation'
 import { formatRupiah } from '@/helper/formatRupiah'
@@ -13,9 +14,13 @@ export default function DonasiPage() {
     total_distributed: 0,
     total_recipients: 0,
   })
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    // Delay kecil agar animasi muncul halus
+    const timer = setTimeout(() => setIsVisible(true), 100)
     fetchDonationData()
+    return () => clearTimeout(timer)
   }, [])
 
   const fetchDonationData = async () => {
@@ -27,12 +32,14 @@ export default function DonasiPage() {
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
       const response = await fetch(`${API_URL}/donations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
+
+      if (!response.ok) throw new Error('Gagal mengambil data donasi')
+
       const data = await response.json()
       setDonations(data.data.donations)
       setDonationHistories(data.data.donation_histories)
@@ -47,12 +54,16 @@ export default function DonasiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#4b63d0]/10 via-white to-gray-50 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#4b63d0]/10 via-white to-gray-50 flex flex-col pb-24 md:pb-4">
       <Navigation currentPage="donasi" />
 
-      <main className="max-w-6xl mx-auto px-6 pt-14">
+      <main
+        className={`flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 pt-6 md:pt-32 transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+        }`}
+      >
         {/* Header */}
-        <div className="text-center mb-14 mt-22">
+        <div className="text-center mb-14">
           <h1 className="text-4xl font-bold text-[#4b63d0] mb-2">
             Ringkasan Donasi
           </h1>
@@ -99,25 +110,36 @@ export default function DonasiPage() {
             Donasi Terdistribusi
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            className="
+              flex gap-5 overflow-x-auto pb-4
+              snap-x snap-mandatory scrollbar-hide scroll-smooth
+              -mx-4 px-4
+            "
+          >
             {donations.map((donation) => (
               <div
                 key={donation.id}
-                className="bg-white rounded-2xl shadow-md hover:shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                className="
+                  flex-shrink-0 w-[250px] sm:w-[260px] md:w-[280px]
+                  bg-white rounded-2xl shadow-md hover:shadow-lg
+                  border border-gray-100 overflow-hidden transition-all
+                  duration-300 hover:-translate-y-1 snap-start
+                "
               >
-                <div className="aspect-[4/3] relative">
+                <div className="relative w-full aspect-[4/3]">
                   <img
                     src={donation.image || '/placeholder.svg'}
                     alt={donation.name}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-[#4b63d0]/10 opacity-0 hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-1">
+                <div className="p-4">
+                  <h3 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2">
                     {donation.name}
                   </h3>
-                  <p className="text-lg font-semibold text-[#4b63d0]">
+                  <p className="text-[#4b63d0] font-semibold text-lg mt-2">
                     {formatRupiah(donation.total)}
                   </p>
                 </div>
@@ -178,7 +200,11 @@ export default function DonasiPage() {
           </div>
         </section>
       </main>
-      <Footer />
+
+      {/* Footer hanya di desktop */}
+      <div className="hidden md:block mt-auto">
+        <Footer />
+      </div>
     </div>
   )
 }
