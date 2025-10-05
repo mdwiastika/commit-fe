@@ -22,60 +22,8 @@ function ProgressPageContent() {
   const router = useRouter()
 
   useEffect(() => {
-    checkExistingQuiz()
     fetchMaterials()
   }, [])
-
-  // PENTING: Check apakah quiz sudah ada dan valid
-  const checkExistingQuiz = () => {
-    const storedQuizData = sessionStorage.getItem('quizData')
-    const storedQuizResults = sessionStorage.getItem('quizResults')
-
-    // Jika ada hasil quiz hari ini
-    if (storedQuizResults) {
-      try {
-        const results = JSON.parse(storedQuizResults)
-        const today = new Date()
-        const resultDate = new Date(results.date)
-
-        if (
-          resultDate.getDate() === today.getDate() &&
-          resultDate.getMonth() === today.getMonth() &&
-          resultDate.getFullYear() === today.getFullYear()
-        ) {
-          console.log('Quiz results found for today, redirecting to results')
-          router.push('/quiz/results')
-          return
-        }
-      } catch (e) {
-        console.error('Error parsing quiz results:', e)
-        sessionStorage.removeItem('quizResults')
-      }
-    }
-
-    // Jika ada quiz data yang valid
-    if (storedQuizData) {
-      try {
-        const quizData = JSON.parse(storedQuizData)
-        if (
-          quizData &&
-          quizData.quiz_details &&
-          Array.isArray(quizData.quiz_details) &&
-          quizData.quiz_details.length > 0
-        ) {
-          console.log('Valid quiz data found, redirecting to quiz')
-          router.push('/quiz')
-          return
-        } else {
-          console.log('Invalid quiz data, removing...')
-          sessionStorage.removeItem('quizData')
-        }
-      } catch (e) {
-        console.error('Error parsing quiz data:', e)
-        sessionStorage.removeItem('quizData')
-      }
-    }
-  }
 
   const fetchMaterials = async () => {
     try {
@@ -100,11 +48,6 @@ function ProgressPageContent() {
       console.error('Error:', error)
       setError('Gagal mengambil data materi')
     }
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type === 'application/pdf') setUploadedFile(file)
   }
 
   const removeFile = () => setUploadedFile(null)
@@ -168,119 +111,19 @@ function ProgressPageContent() {
         setIsSubmitting(false)
         return
       }
-
-      // Handle successful submission
       if (responseData.status === true) {
-        console.log('Summary submitted successfully, generating quiz...')
-
-        // Generate quiz
-        const responseQuiz = await fetch(
-          `${API_URL}/transactions/generate-quiz`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-
-        const quizData = await responseQuiz.json()
-        console.log('Generate quiz response:', quizData)
-
-        if (!responseQuiz.ok) {
-          setError('Gagal mengambil data quiz')
-          setShowSnackbar(true)
-          setTimeout(() => setShowSnackbar(false), 3000)
-          setIsSubmitting(false)
+        const quiz_status = responseData.data.quiz_status
+        if (quiz_status !== 'success') {
+          router.push('/quiz')
           return
-        }
-
-        if (quizData.status === true && quizData.data) {
-          // Validasi struktur data sebelum simpan
-          if (
-            quizData.data.quiz_details &&
-            Array.isArray(quizData.data.quiz_details) &&
-            quizData.data.quiz_details.length > 0
-          ) {
-            console.log('Valid quiz data, storing and redirecting...')
-            sessionStorage.setItem('quizData', JSON.stringify(quizData.data))
-
-            // Verifikasi tersimpan
-            const stored = sessionStorage.getItem('quizData')
-            if (stored) {
-              router.push('/quiz')
-            } else {
-              setError('Gagal menyimpan data quiz')
-              setShowSnackbar(true)
-              setIsSubmitting(false)
-            }
-          } else {
-            console.error('Invalid quiz data structure:', quizData.data)
-            setError('Data quiz tidak valid')
-            setShowSnackbar(true)
-            setIsSubmitting(false)
-          }
         } else {
-          setError('Gagal membuat quiz')
+          setError(
+            'Kamu sudah menyelesaikan semua kuis hari ini. Silakan tunggu hingga besok untuk mengirim progres lagi.',
+          )
           setShowSnackbar(true)
-          setIsSubmitting(false)
+          setTimeout(() => setShowSnackbar(false), 5000)
+          router.push('/dashboard')
         }
-      } else {
-        // Handle status false
-        const errorMsg =
-          responseData.message +
-          (responseData.data?.summary ? '\n' + responseData.data.summary : '')
-        setError(errorMsg)
-        setShowSnackbar(true)
-        setTimeout(() => setShowSnackbar(false), 3000)
-
-        // PENTING: Jika sudah submit hari ini, generate quiz baru dulu
-        if (
-          responseData.message === 'You have already submitted a summary today.'
-        ) {
-          console.log('Already submitted today, trying to generate quiz...')
-
-          try {
-            const responseQuiz = await fetch(
-              `${API_URL}/transactions/generate-quiz`,
-              {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              },
-            )
-
-            const quizData = await responseQuiz.json()
-            console.log('Generate quiz after duplicate:', quizData)
-
-            if (responseQuiz.ok && quizData.status === true && quizData.data) {
-              if (
-                quizData.data.quiz_details &&
-                Array.isArray(quizData.data.quiz_details) &&
-                quizData.data.quiz_details.length > 0
-              ) {
-                sessionStorage.setItem(
-                  'quizData',
-                  JSON.stringify(quizData.data),
-                )
-                router.push('/quiz')
-                return
-              }
-            }
-
-            // Jika generate quiz gagal, redirect ke dashboard
-            console.log('Failed to generate quiz, redirecting to dashboard')
-            setTimeout(() => router.push('/dashboard'), 2000)
-          } catch (e) {
-            console.error('Error generating quiz:', e)
-            setTimeout(() => router.push('/dashboard'), 2000)
-          }
-        }
-
-        setIsSubmitting(false)
       }
     } catch (error) {
       console.error('Error submitting progress:', error)

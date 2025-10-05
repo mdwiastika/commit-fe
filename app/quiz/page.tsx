@@ -57,46 +57,7 @@ export default function QuizPage() {
   useEffect(() => {
     const initializeQuiz = async () => {
       try {
-        const storedQuizResults = sessionStorage.getItem('quizResults')
-        if (storedQuizResults) {
-          const dataQuizResults = JSON.parse(storedQuizResults)
-          const today = new Date()
-          const quizDate = new Date(dataQuizResults.date)
-          if (
-            dataQuizResults.date &&
-            quizDate.getDate() === today.getDate() &&
-            quizDate.getMonth() === today.getMonth() &&
-            quizDate.getFullYear() === today.getFullYear()
-          ) {
-            if (dataQuizResults.passed) {
-              router.push('/quiz/results')
-              return
-            } else {
-              sessionStorage.removeItem('quizData')
-              sessionStorage.removeItem('quizResults')
-              await fetchQuizData()
-              return
-            }
-          }
-        }
-
-        const storedQuizData = sessionStorage.getItem('quizData')
-        if (storedQuizData) {
-          const data: QuizData = JSON.parse(storedQuizData)
-
-          // VALIDASI: Pastikan data memiliki struktur yang benar
-          if (data && data.quiz_details && Array.isArray(data.quiz_details)) {
-            setQuizData(data)
-            setTimeLeft(1800) // 30 menit
-            setAnswers(new Array(data.quiz_details.length).fill(''))
-            setIsLoading(false)
-          } else {
-            console.error('Invalid quiz data structure')
-            router.push('/dashboard')
-          }
-        } else {
-          router.push('/dashboard')
-        }
+        await fetchQuizData()
       } catch (error) {
         console.error('Error initializing quiz:', error)
         router.push('/dashboard')
@@ -124,13 +85,21 @@ export default function QuizPage() {
     }
 
     const quizData = await responseQuiz.json()
-    console.log('Quiz Data:', quizData.data)
-    if (quizData.status === true) {
-      sessionStorage.setItem('quizData', JSON.stringify(quizData.data))
-      router.push('/quiz')
-    } else {
-      router.push('/progress')
+    if (!quizData.data || !quizData.data.quiz_details) {
+      throw new Error('Data quiz tidak valid')
     }
+
+    if (quizData.data.quiz_details.length === 0) {
+      throw new Error('Tidak ada pertanyaan dalam quiz')
+    }
+    if (quizData.data.quiz_status === 'success') {
+      router.push('/quiz/results')
+      return
+    }
+    setQuizData(quizData.data)
+    setAnswers(new Array(quizData.data.quiz_details.length).fill(''))
+    setTimeLeft(quizData.data.quiz_details.length * 150)
+    setIsLoading(false)
   }
 
   // Effect untuk timer - HANYA berjalan jika quizData sudah ada
