@@ -55,6 +55,7 @@ export default function QuizResultsPage() {
   })
   useEffect(() => {
     const storedResults = sessionStorage.getItem('quizResults')
+    sessionStorage.removeItem('quizData')
     if (storedResults) {
       setResults(JSON.parse(storedResults))
       fetchDashboardInfo()
