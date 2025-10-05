@@ -180,7 +180,8 @@ export default function RiwayatPage() {
       {/* Modal */}
       {selectedHistory && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl p-8 max-w-lg w-full relative">
+          <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl p-8 max-w-lg w-full relative max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Tombol Close */}
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 bg-gray-200 hover:bg-red-500 hover:text-white rounded-full p-2 transition"
@@ -188,21 +189,20 @@ export default function RiwayatPage() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="space-y-5">
+            {/* Konten Modal Scrollable */}
+            <div className="overflow-y-auto pr-2 mt-2 space-y-5">
               <h3 className="text-2xl font-bold text-gray-900">
                 Day {selectedHistory.day}
               </h3>
+
               <div className="text-gray-600">
                 <p className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-blue-600" />
-                  {new Date(selectedHistory.created_at).toLocaleDateString(
-                    'id-ID',
-                    {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    },
-                  )}
+                  {new Date(selectedHistory.created_at).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </p>
                 <p className="mt-2">
                   <strong>Materi:</strong>{' '}
@@ -217,7 +217,7 @@ export default function RiwayatPage() {
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Rangkuman</h4>
                 <p className="text-gray-700 leading-relaxed text-sm">
-                  {selectedHistory.summary.body || 'Tidak ada rangkuman'}
+                  {selectedHistory.summary?.body || 'Tidak ada rangkuman'}
                 </p>
               </div>
 

@@ -85,7 +85,7 @@ function DashboardContent() {
     return <LoadingSpinner />
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-6 md:pt-34 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-6 md:pt-34 pb-24 md:pb-4">
       <Navigation currentPage="dashboard" />
 
       <div className="max-w-5xl mx-auto space-y-10 min-h-[calc(100vh-300px)]">
