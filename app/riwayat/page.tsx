@@ -132,7 +132,7 @@ export default function RiwayatPage() {
                 label: 'Materi Dipelajari',
                 value: history.complete_roadmap_details,
               },
-              { label: 'Hari Gagal', value: history.running_days },
+              { label: 'Hari Gagal', value: history.count_failed_transaction },
             ].map((stat, i) => (
               <div
                 key={i}
