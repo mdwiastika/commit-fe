@@ -50,40 +50,60 @@ export default function QuizPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [answers, setAnswers] = useState<string[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  // Effect untuk load data dari sessionStorage
   useEffect(() => {
-    const storedQuizResults = sessionStorage.getItem('quizResults')
-    if (storedQuizResults) {
-      const dataQuizResults = JSON.parse(storedQuizResults)
-      const today = new Date()
-      const quizDate = new Date(dataQuizResults.date)
-      if (
-        dataQuizResults.date &&
-        quizDate.getDate() === today.getDate() &&
-        quizDate.getMonth() === today.getMonth() &&
-        quizDate.getFullYear() === today.getFullYear()
-      ) {
-        if (dataQuizResults.passed) {
-          router.push('/quiz/results')
-          return
-        } else {
-          sessionStorage.removeItem('quizData')
-          sessionStorage.removeItem('quizResults')
-          fetchQuizData()
-          return
+    const initializeQuiz = async () => {
+      try {
+        const storedQuizResults = sessionStorage.getItem('quizResults')
+        if (storedQuizResults) {
+          const dataQuizResults = JSON.parse(storedQuizResults)
+          const today = new Date()
+          const quizDate = new Date(dataQuizResults.date)
+          if (
+            dataQuizResults.date &&
+            quizDate.getDate() === today.getDate() &&
+            quizDate.getMonth() === today.getMonth() &&
+            quizDate.getFullYear() === today.getFullYear()
+          ) {
+            if (dataQuizResults.passed) {
+              router.push('/quiz/results')
+              return
+            } else {
+              sessionStorage.removeItem('quizData')
+              sessionStorage.removeItem('quizResults')
+              await fetchQuizData()
+              return
+            }
+          }
         }
+
+        const storedQuizData = sessionStorage.getItem('quizData')
+        if (storedQuizData) {
+          const data: QuizData = JSON.parse(storedQuizData)
+
+          // VALIDASI: Pastikan data memiliki struktur yang benar
+          if (data && data.quiz_details && Array.isArray(data.quiz_details)) {
+            setQuizData(data)
+            setTimeLeft(1800) // 30 menit
+            setAnswers(new Array(data.quiz_details.length).fill(''))
+            setIsLoading(false)
+          } else {
+            console.error('Invalid quiz data structure')
+            router.push('/dashboard')
+          }
+        } else {
+          router.push('/dashboard')
+        }
+      } catch (error) {
+        console.error('Error initializing quiz:', error)
+        router.push('/dashboard')
       }
     }
-    const storedQuizData = sessionStorage.getItem('quizData')
-    if (storedQuizData) {
-      const data: QuizData = JSON.parse(storedQuizData)
-      setQuizData(data)
-      setTimeLeft(1800) // 30 menit
-      setAnswers(new Array(data.quiz_details.length).fill(''))
-    } else {
-      router.push('/dashboard')
-    }
+
+    initializeQuiz()
   }, [router])
 
   const fetchQuizData = async () => {
@@ -113,14 +133,17 @@ export default function QuizPage() {
     }
   }
 
+  // Effect untuk timer - HANYA berjalan jika quizData sudah ada
   useEffect(() => {
+    if (!quizData || isLoading) return // GUARD CLAUSE
+
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
       return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && quizData) {
+    } else if (timeLeft === 0) {
       handleSubmitQuiz()
     }
-  }, [timeLeft, quizData])
+  }, [timeLeft, quizData, isLoading])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -136,7 +159,8 @@ export default function QuizPage() {
   }
 
   const handleNext = async () => {
-    if (!quizData || selectedAnswer === null) return
+    // GUARD CLAUSE: Pastikan semua data tersedia
+    if (!quizData || !quizData.quiz_details || selectedAnswer === null) return
 
     try {
       const token = localStorage.getItem('auth_token')
@@ -145,8 +169,13 @@ export default function QuizPage() {
         return
       }
 
+      const currentQ = quizData.quiz_details[currentQuestion]
+      if (!currentQ) {
+        console.error('Current question not found')
+        return
+      }
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      // Kirim jawaban ke backend
       const response = await fetch(`${API_URL}/transactions/question-quiz`, {
         method: 'POST',
         headers: {
@@ -176,8 +205,8 @@ export default function QuizPage() {
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
-      // Tetap lanjut meskipun ada error (opsional, bisa diubah sesuai kebutuhan)
-      if (currentQuestion < quizData.quiz_details.length - 1) {
+      // Tetap lanjut meskipun ada error
+      if (quizData && currentQuestion < quizData.quiz_details.length - 1) {
         setCurrentQuestion(currentQuestion + 1)
         setSelectedAnswer(
           answers[currentQuestion + 1] !== ''
@@ -192,6 +221,7 @@ export default function QuizPage() {
 
   const handleSubmitQuiz = async () => {
     if (!quizData) return
+
     const token = localStorage.getItem('auth_token')
     if (!token) {
       console.error('Token tidak ditemukan')
@@ -207,6 +237,7 @@ export default function QuizPage() {
         Authorization: `Bearer ${token}`,
       },
     })
+
     if (!response.ok) {
       console.error('Failed to submit quiz')
       return
@@ -235,7 +266,8 @@ export default function QuizPage() {
     router.push('/quiz/results')
   }
 
-  if (!quizData) {
+  // Loading state
+  if (isLoading || !quizData || !quizData.quiz_details) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#eef3ff] to-white">
         <p className="text-gray-600 text-lg">Loading quiz...</p>
@@ -244,6 +276,15 @@ export default function QuizPage() {
   }
 
   const currentQ = quizData.quiz_details[currentQuestion]
+
+  // Guard untuk currentQ
+  if (!currentQ) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#eef3ff] to-white">
+        <p className="text-gray-600 text-lg">Error loading question...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-b from-[#eef3ff] to-white">
