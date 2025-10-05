@@ -15,7 +15,7 @@ interface Material {
 function CustomRoadmapContent() {
   const router = useRouter()
   const [roadmapTitle, setRoadmapTitle] = useState('')
-  const [roadmapDescription, setRoadmapDescription] = useState('') // ✅ new field
+  const [roadmapDescription, setRoadmapDescription] = useState('')
   const [materials, setMaterials] = useState<Material[]>([])
   const [currentMaterial, setCurrentMaterial] = useState({
     title: '',

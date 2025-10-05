@@ -150,7 +150,7 @@ function ProgressPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#eef3ff] via-[#fafafa] to-white pt-36 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-16 md:pt-34 pb-24">
       <Navigation currentPage="progress" />
 
       <div className="min-h-[calc(100vh-315px)]">
@@ -327,7 +327,9 @@ function ProgressPageContent() {
           </motion.div>
         </motion.div>
       </div>
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   )
 }

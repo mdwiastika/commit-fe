@@ -2,9 +2,10 @@
 
 import { Footer } from '@/components/footer'
 import { Navigation } from '@/components/navigation'
-import { ChevronRight, Star, Target } from 'lucide-react'
+import { ChevronRight, Target } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion' // ✅ Tambahkan ini
 
 export default function RoadmapPage() {
   const [currentRoadmap, setCurrentRoadmap] = useState(
@@ -57,73 +58,71 @@ export default function RoadmapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e9edff] to-white px-6">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e9edff] to-white px-6 pb-24 md:pb-4">
       <Navigation currentPage="roadmap" />
 
-      <main className="max-w-6xl mx-auto px-6 py-12 min-h-[calc(100vh-170px)]">
+      {/* Tambahkan motion di sini */}
+      <motion.main
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="
+          flex-grow 
+          max-w-6xl mx-auto w-full 
+          px-2 sm:px-6 
+          pt-6 md:pt-32 
+        "
+      >
         {/* Header */}
-        <div className="flex items-center justify-between mb-12 pt-22">
-          <h1 className="text-4xl font-bold text-[#4b63d0] tracking-tight">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="flex items-center justify-between mb-8 md:mb-12"
+        >
+          <h1 className="text-3xl md:text-4xl font-bold text-[#4b63d0] tracking-tight">
             Roadmap Belajar
           </h1>
-          <Target className="w-10 h-10 text-[#4b63d0]" />
-        </div>
+          <Target className="w-8 h-8 md:w-10 md:h-10 text-[#4b63d0]" />
+        </motion.div>
 
         {/* Current Roadmap */}
-        <section className="mb-14">
-          <h2 className="text-2xl font-semibold text-[#4b63d0] mb-6">
-            Roadmap Saat Ini
-          </h2>
+        {currentRoadmap?.id && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mb-12"
+          >
+            <h2 className="text-2xl font-semibold text-[#4b63d0] mb-6">
+              Roadmap Saat Ini
+            </h2>
 
-          <Link href={`/roadmap/${currentRoadmap.id}`}>
-            <div className="bg-white/90 backdrop-blur-sm border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_8px_20px_rgba(75,99,208,0.2)] transition-all cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {currentRoadmap.name}
-                  </h3>
-                  <p className="text-gray-600">
-                    {currentRoadmap.roadmap_details_count} Materi
-                  </p>
-                </div>
-                <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
-              </div>
-            </div>
-          </Link>
-        </section>
-
-        {/* Completed Roadmaps */}
-        {/* <section className="mb-14">
-          <h2 className="text-2xl font-semibold text-[#4b63d0] mb-6 flex items-center gap-2">
-            Roadmap Diselesaikan
-          </h2>
-
-          <div className="space-y-5">
-            {completedRoadmaps.map((roadmap) => (
-              <Link key={roadmap.id} href={`/roadmap/${roadmap.id}`}>
-                <div className="bg-gradient-to-r from-[#4b63d0]/10 to-[#4b63d0]/5 border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_8px_20px_rgba(75,99,208,0.15)] transition-all cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {roadmap.title}
-                      </h3>
-                      <p className="text-gray-600">
-                        {roadmap.materials} Materi
-                      </p>
-                      <p className="text-sm text-gray-700 mt-2 italic">
-                        {roadmap.completionText}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
+            <Link href={`/roadmap/${currentRoadmap.id}`}>
+              <div className="bg-white/90 backdrop-blur-sm border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_8px_20px_rgba(75,99,208,0.2)] transition-all cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {currentRoadmap.name}
+                    </h3>
+                    <p className="text-gray-600">
+                      {currentRoadmap.roadmap_details_count} Materi
+                    </p>
                   </div>
+                  <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section> */}
+              </div>
+            </Link>
+          </motion.section>
+        )}
 
         {/* Other Roadmaps */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="pb-4 md:pb-0"
+        >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-[#4b63d0]">
               Roadmap Lainnya
@@ -132,27 +131,38 @@ export default function RoadmapPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {otherRoadmaps.map((roadmap) => (
-              <Link key={roadmap.id} href={`/roadmap/${roadmap.id}`}>
-                <div className="bg-white/90 border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_6px_16px_rgba(75,99,208,0.15)] hover:-translate-y-1 transition-all cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {roadmap.name}
-                      </h3>
-                      <p className="text-gray-600">
-                        {roadmap.roadmap_details_count} Materi
-                      </p>
+            {otherRoadmaps.map((roadmap, i) => (
+              <motion.div
+                key={roadmap.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
+              >
+                <Link href={`/roadmap/${roadmap.id}`}>
+                  <div className="bg-white/90 border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_6px_16px_rgba(75,99,208,0.15)] hover:-translate-y-1 transition-all cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          {roadmap.name}
+                        </h3>
+                        <p className="text-gray-600">
+                          {roadmap.roadmap_details_count} Materi
+                        </p>
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
                     </div>
-                    <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </motion.div>
             ))}
           </div>
-        </section>
-      </main>
-      <Footer />
+        </motion.section>
+      </motion.main>
+
+      {/* Footer hanya di desktop/tablet */}
+      <div className="hidden md:block mt-auto">
+        <Footer />
+      </div>
     </div>
   )
 }
