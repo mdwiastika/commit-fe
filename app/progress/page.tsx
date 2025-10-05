@@ -126,7 +126,10 @@ function ProgressPageContent() {
             router.push('/progress')
           }
         } else if (responseData.status === false) {
-          setError(responseData.message || 'Gagal mengirim progres belajar')
+          setError(
+            responseData.message + '\n' + (responseData.data.summary || '') ||
+              'Gagal mengirim progres belajar',
+          )
           setShowSnackbar(true)
           setTimeout(() => setShowSnackbar(false), 3000)
           if (
@@ -160,7 +163,7 @@ function ProgressPageContent() {
               className="fixed top-6 right-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-lg z-50"
             >
               <p className="font-semibold">⚠️ Peringatan</p>
-              <p className="text-sm mt-1">{error}</p>
+              <p className="text-sm mt-1 whitespace-pre-line">{error}</p>
             </motion.div>
           )}
         </AnimatePresence>
