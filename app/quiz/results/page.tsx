@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, X, Flame, Wallet, TrendingUp, Target, Calendar } from 'lucide-react'
+import {
+  Check,
+  X,
+  Flame,
+  Wallet,
+  TrendingUp,
+  Target,
+  Calendar,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 
@@ -56,14 +64,7 @@ export default function QuizResultsPage() {
   })
 
   useEffect(() => {
-    const storedResults = sessionStorage.getItem('quizResults')
-    sessionStorage.removeItem('quizData')
-    if (storedResults) {
-      setResults(JSON.parse(storedResults))
-      fetchDashboardInfo()
-    } else {
-      router.push('/dashboard')
-    }
+    fetchSubmitQuiz()
   }, [router])
 
   useEffect(() => {
@@ -75,8 +76,54 @@ export default function QuizResultsPage() {
     }
   }, [countdown])
 
+  const fetchSubmitQuiz = async () => {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      console.error('Token tidak ditemukan')
+      return
+    }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const response = await fetch(`${API_URL}/transactions/submit-quiz`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Gagal mengirim data quiz')
+    }
+
+    const data = await response.json()
+    if (data) {
+      if (data.data) {
+        const score = data.data.score
+        const totalQuestions = data.data.total_questions
+        const correctAnswers = data.data.correct_answers
+        const passed = data.data.score >= 60
+        const explanations = data.data.explanations || []
+
+        setResults({
+          score,
+          totalQuestions,
+          correctAnswers,
+          passed,
+          explanations,
+        })
+      } else {
+        router.push('/dashboard')
+        return
+      }
+      fetchDashboardInfo()
+    } else {
+      router.push('/dashboard')
+      return
+    }
+  }
+
   const handleBackToDashboard = () => {
-    sessionStorage.removeItem('quizResults')
     router.push('/dashboard')
   }
 
@@ -110,33 +157,7 @@ export default function QuizResultsPage() {
   }
 
   const handleRetryQuiz = async () => {
-    sessionStorage.removeItem('quizResults')
-    const token = localStorage.getItem('auth_token')
-    if (!token) return console.error('Token tidak ditemukan')
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const responseQuiz = await fetch(`${API_URL}/transactions/generate-quiz`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!responseQuiz.ok) {
-      throw new Error('Gagal mengambil data quiz')
-    }
-
-    const quizData = await responseQuiz.json()
-    sessionStorage.removeItem('quizResults')
-    sessionStorage.removeItem('quizData')
-    console.log('Quiz Data:', quizData.data)
-    if (quizData.status === true) {
-      sessionStorage.setItem('quizData', JSON.stringify(quizData.data))
-      router.push('/quiz')
-    } else {
-      router.push('/progress')
-    }
+    router.push('/quiz')
   }
 
   if (!results) {
@@ -165,43 +186,75 @@ export default function QuizResultsPage() {
             <div className="bg-gradient-to-br from-[#ff6b6b] to-[#ee5a6f] p-8 text-center relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
-              
+
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                 className="relative"
               >
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm mb-4">
                   <X className="w-14 h-14 text-white" strokeWidth={3} />
                 </div>
-                <h1 className="text-5xl font-bold text-white mb-2">{results.score}%</h1>
-                <p className="text-xl text-white/90 font-medium">Belum Berhasil</p>
+                <h1 className="text-5xl font-bold text-white mb-2">
+                  {results.score}%
+                </h1>
+                <p className="text-xl text-white/90 font-medium">
+                  Belum Berhasil
+                </p>
               </motion.div>
             </div>
 
             {/* Content */}
             <div className="p-8">
               <p className="text-center text-gray-600 text-lg mb-8">
-                Kamu perlu mendapatkan minimal <span className="font-bold text-[#ff6b6b]">60%</span> untuk melanjutkan. Jangan menyerah, coba lagi!
+                Kamu perlu mendapatkan minimal{' '}
+                <span className="font-bold text-[#ff6b6b]">60%</span> untuk
+                melanjutkan. Jangan menyerah, coba lagi!
               </p>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-bold text-gray-800">{results.totalQuestions}</div>
+                  <div className="text-3xl font-bold text-gray-800">
+                    {results.totalQuestions}
+                  </div>
                   <div className="text-sm text-gray-600 mt-1">Total Soal</div>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-bold text-green-700">{results.correctAnswers}</div>
+                  <div className="text-3xl font-bold text-green-700">
+                    {results.correctAnswers}
+                  </div>
                   <div className="text-sm text-green-600 mt-1">Benar</div>
                 </div>
                 <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-bold text-red-700">{results.totalQuestions - results.correctAnswers}</div>
+                  <div className="text-3xl font-bold text-red-700">
+                    {results.totalQuestions - results.correctAnswers}
+                  </div>
                   <div className="text-sm text-red-600 mt-1">Salah</div>
                 </div>
               </div>
 
+              {/** Explanations */}
+              <div className="mt-8">
+                <h3 className="font-bold text-gray-800 mb-4 text-lg flex items-center gap-2">
+                  <span>💡</span> Penjelasan Jawaban
+                </h3>
+                <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                  {results.explanations && results.explanations.length > 0 ? (
+                    results.explanations.map((tip, index) => (
+                      <li key={index} className="flex gap-3 text-gray-700">
+                        <span className="text-amber-600 font-bold flex-shrink-0">
+                          •
+                        </span>
+                        <span className="leading-relaxed">{tip}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <p className="text-gray-600">Tidak ada penjelasan.</p>
+                  )}
+                </ul>
+              </div>
               {/* Action Button */}
               <Button
                 onClick={handleRetryQuiz}
@@ -233,18 +286,22 @@ export default function QuizResultsPage() {
           <div className="bg-gradient-to-br from-[#4b63d0] to-[#6582e6] p-8 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
-            
+
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               className="relative"
             >
               <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm mb-4">
                 <Check className="w-14 h-14 text-white" strokeWidth={3} />
               </div>
-              <h1 className="text-5xl font-bold text-white mb-2">{results.score}%</h1>
-              <p className="text-xl text-white/90 font-medium">Mantap! Progress harianmu tercatat</p>
+              <h1 className="text-5xl font-bold text-white mb-2">
+                {results.score}%
+              </h1>
+              <p className="text-xl text-white/90 font-medium">
+                Mantap! Progress harianmu tercatat
+              </p>
             </motion.div>
           </div>
 
@@ -258,7 +315,9 @@ export default function QuizResultsPage() {
                 transition={{ delay: 0.3 }}
                 className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 text-center"
               >
-                <div className="text-3xl font-bold text-gray-800">{results.totalQuestions}</div>
+                <div className="text-3xl font-bold text-gray-800">
+                  {results.totalQuestions}
+                </div>
                 <div className="text-sm text-gray-600 mt-1">Total Soal</div>
               </motion.div>
               <motion.div
@@ -267,7 +326,9 @@ export default function QuizResultsPage() {
                 transition={{ delay: 0.4 }}
                 className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 text-center"
               >
-                <div className="text-3xl font-bold text-green-700">{results.correctAnswers}</div>
+                <div className="text-3xl font-bold text-green-700">
+                  {results.correctAnswers}
+                </div>
                 <div className="text-sm text-green-600 mt-1">Benar</div>
               </motion.div>
               <motion.div
@@ -276,7 +337,9 @@ export default function QuizResultsPage() {
                 transition={{ delay: 0.5 }}
                 className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-4 text-center"
               >
-                <div className="text-3xl font-bold text-red-700">{results.totalQuestions - results.correctAnswers}</div>
+                <div className="text-3xl font-bold text-red-700">
+                  {results.totalQuestions - results.correctAnswers}
+                </div>
                 <div className="text-sm text-red-600 mt-1">Salah</div>
               </motion.div>
             </div>
@@ -294,7 +357,9 @@ export default function QuizResultsPage() {
                 </div>
                 <div className="text-white">
                   <div className="text-sm opacity-90">Streak</div>
-                  <div className="text-2xl font-bold">{dashboardInfo.streak} Hari</div>
+                  <div className="text-2xl font-bold">
+                    {dashboardInfo.streak} Hari
+                  </div>
                 </div>
               </motion.div>
 
@@ -324,16 +389,20 @@ export default function QuizResultsPage() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-[#4b63d0]" />
-                  <span className="font-semibold text-gray-800">Progress Roadmap</span>
+                  <span className="font-semibold text-gray-800">
+                    Progress Roadmap
+                  </span>
                 </div>
-                <span className="text-2xl font-bold text-[#4b63d0]">{dashboardInfo.progress}%</span>
+                <span className="text-2xl font-bold text-[#4b63d0]">
+                  {dashboardInfo.progress}%
+                </span>
               </div>
-              
+
               <div className="w-full h-3 bg-white rounded-full overflow-hidden mb-4 shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${dashboardInfo.progress}%` }}
-                  transition={{ delay: 1, duration: 1, ease: "easeOut" }}
+                  transition={{ delay: 1, duration: 1, ease: 'easeOut' }}
                   className="h-full bg-gradient-to-r from-[#4b63d0] to-[#6582e6] rounded-full"
                 />
               </div>
@@ -341,11 +410,25 @@ export default function QuizResultsPage() {
               <div className="flex flex-col md:flex-row justify-between gap-2 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  <span>Deadline: <span className="font-semibold text-gray-800">{dashboardInfo.remaining_days}</span></span>
+                  <span>
+                    Deadline:{' '}
+                    <span className="font-semibold text-gray-800">
+                      {dashboardInfo.remaining_days}
+                    </span>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Target className="w-4 h-4" />
-                  <span><span className="font-semibold text-gray-800">{dashboardInfo.complete_roadmap_details}</span> dari <span className="font-semibold text-gray-800">{dashboardInfo.total_roadmap_details}</span> Materi</span>
+                  <span>
+                    <span className="font-semibold text-gray-800">
+                      {dashboardInfo.complete_roadmap_details}
+                    </span>{' '}
+                    dari{' '}
+                    <span className="font-semibold text-gray-800">
+                      {dashboardInfo.total_roadmap_details}
+                    </span>{' '}
+                    Materi
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -364,7 +447,9 @@ export default function QuizResultsPage() {
                 <ul className="space-y-3">
                   {results.explanations.map((tip, index) => (
                     <li key={index} className="flex gap-3 text-gray-700">
-                      <span className="text-amber-600 font-bold flex-shrink-0">•</span>
+                      <span className="text-amber-600 font-bold flex-shrink-0">
+                        •
+                      </span>
                       <span className="leading-relaxed">{tip}</span>
                     </li>
                   ))}
@@ -388,7 +473,9 @@ export default function QuizResultsPage() {
             </span>{' '}
             detik
           </p>
-          <p className="text-sm text-gray-500">Atau klik di mana saja untuk melanjutkan</p>
+          <p className="text-sm text-gray-500">
+            Atau klik di mana saja untuk melanjutkan
+          </p>
         </motion.div>
       </motion.div>
     </div>

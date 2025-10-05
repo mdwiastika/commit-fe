@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
@@ -51,10 +51,12 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<string[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const hasFetchedRef = useRef(false)
   const router = useRouter()
 
-  // Effect untuk load data dari sessionStorage
   useEffect(() => {
+    if (hasFetchedRef.current) return
+    hasFetchedRef.current = true
     const initializeQuiz = async () => {
       try {
         await fetchQuizData()
@@ -65,7 +67,7 @@ export default function QuizPage() {
     }
 
     initializeQuiz()
-  }, [router])
+  }, [])
 
   const fetchQuizData = async () => {
     const token = localStorage.getItem('auth_token')
@@ -190,47 +192,6 @@ export default function QuizPage() {
 
   const handleSubmitQuiz = async () => {
     if (!quizData) return
-
-    const token = localStorage.getItem('auth_token')
-    if (!token) {
-      console.error('Token tidak ditemukan')
-      return
-    }
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
-    const response = await fetch(`${API_URL}/transactions/submit-quiz`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      console.error('Failed to submit quiz')
-      return
-    }
-
-    const result = await response.json()
-    const resultData = result.data
-    const score = resultData.score
-    const correctAnswers = resultData.correct_answers
-    const totalQuestions = resultData.total_questions
-    const explanations = resultData.explanations
-    const date = new Date()
-
-    sessionStorage.setItem(
-      'quizResults',
-      JSON.stringify({
-        score,
-        correctAnswers,
-        totalQuestions,
-        passed: score >= 60,
-        explanations,
-        date: date.toISOString(),
-      }),
-    )
 
     router.push('/quiz/results')
   }

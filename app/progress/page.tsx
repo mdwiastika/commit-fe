@@ -124,6 +124,25 @@ function ProgressPageContent() {
           setTimeout(() => setShowSnackbar(false), 5000)
           router.push('/dashboard')
         }
+      } else {
+        const quiz_status = responseData.data.quiz_status
+        if (quiz_status == null) {
+          setError(responseData.message || 'Gagal mengirim progres belajar')
+          setShowSnackbar(true)
+          setIsSubmitting(false)
+          setTimeout(() => setShowSnackbar(false), 3000)
+          return
+        } else if (quiz_status !== 'success') {
+          router.push('/quiz')
+          return
+        } else {
+          setError(
+            'Kamu sudah menyelesaikan semua kuis hari ini. Silakan tunggu hingga besok untuk mengirim progres lagi.',
+          )
+          setShowSnackbar(true)
+          setTimeout(() => setShowSnackbar(false), 5000)
+          router.push('/dashboard')
+        }
       }
     } catch (error) {
       console.error('Error submitting progress:', error)
