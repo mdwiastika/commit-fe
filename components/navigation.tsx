@@ -13,7 +13,10 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
   const pathname = usePathname()
   const { logout } = useAuth()
   const [open, setOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // SOLUSI: Buat dua ref terpisah
+  const desktopDropdownRef = useRef<HTMLDivElement>(null)
+  const mobileDropdownRef = useRef<HTMLDivElement>(null)
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -23,12 +26,16 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
     { name: 'Donasi', href: '/donasi', icon: Heart },
   ]
 
-  // Close dropdown when clicking outside
+  // SOLUSI: Perbarui useEffect untuk memeriksa kedua ref
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const targetNode = event.target as Node
+      // Tutup jika klik BUKAN di dalam dropdown desktop DAN BUKAN di dalam dropdown mobile
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        desktopDropdownRef.current &&
+        !desktopDropdownRef.current.contains(targetNode) &&
+        mobileDropdownRef.current &&
+        !mobileDropdownRef.current.contains(targetNode)
       ) {
         setOpen(false)
       }
@@ -37,6 +44,11 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const handleLogout = () => {
+    console.log('Logging out...')
+    logout()
+    setOpen(false)
+  }
   return (
     <>
       {/* Desktop Navigation - Top */}
@@ -82,7 +94,8 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
           </div>
 
           {/* User Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* SOLUSI: Gunakan ref untuk desktop */}
+          <div className="relative" ref={desktopDropdownRef}>
             <Button
               variant="ghost"
               onClick={() => setOpen(!open)}
@@ -102,7 +115,7 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
                   className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-[999]"
                 >
                   <button
-                    onClick={logout}
+                    onClick={() => handleLogout()}
                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-all rounded-xl"
                   >
                     <LogOut className="w-4 h-4" />
@@ -153,18 +166,20 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
               </Link>
             )
           })}
-          
+
           {/* User Menu Button */}
-          <div className="flex flex-col items-center gap-1 min-w-[60px]" ref={dropdownRef}>
+          {/* SOLUSI: Gunakan ref untuk mobile */}
+          <div
+            className="flex flex-col items-center gap-1 min-w-[60px]"
+            ref={mobileDropdownRef}
+          >
             <button
               onClick={() => setOpen(!open)}
               className="relative p-2 rounded-xl text-gray-500 hover:text-[#4b63d0] hover:bg-[#e3e9ff]/30 transition-all"
             >
               <User className="w-5 h-5" />
             </button>
-            <span className="text-[10px] font-medium text-gray-500">
-              Akun
-            </span>
+            <span className="text-[10px] font-medium text-gray-500">Akun</span>
 
             <AnimatePresence>
               {open && (
@@ -176,7 +191,7 @@ export function Navigation({ currentPage }: { currentPage?: string }) {
                   className="absolute bottom-full right-0 mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-[999]"
                 >
                   <button
-                    onClick={logout}
+                    onClick={() => handleLogout()}
                     className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-all rounded-xl"
                   >
                     <LogOut className="w-4 h-4" />
