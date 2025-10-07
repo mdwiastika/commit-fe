@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -12,23 +11,30 @@ import { useAuth } from "@/contexts/auth-context"
 export default function RegisterPage() {
   const router = useRouter()
   const { login } = useAuth()
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     password_confirmation: "",
   })
-  const [error, setError] = useState("")
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [generalError, setGeneralError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
+    setFieldErrors({})
+    setGeneralError("")
 
     if (formData.password !== formData.password_confirmation) {
-      setError("Password dan konfirmasi password tidak cocok")
+      setFieldErrors({
+        password_confirmation: "Password dan konfirmasi password tidak cocok",
+      })
       return
     }
 
@@ -38,8 +44,24 @@ export default function RegisterPage() {
       const response = await registerApi(formData)
       login(response.data.token)
       router.push("/pemilihan")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed")
+    } catch (err: any) {
+      const responseData = err.response?.data || {}
+      console.error("Registration error:", responseData)
+
+      const { message, errors } = responseData
+
+      // Jika ada validasi Laravel
+      if (errors && typeof errors === "object") {
+        const newErrors: Record<string, string> = {}
+        for (const key in errors) {
+          newErrors[key] = errors[key][0] // ambil pesan pertama
+        }
+        setFieldErrors(newErrors)
+      } else if (message) {
+        setGeneralError(message)
+      } else {
+        setGeneralError("Terjadi kesalahan, silakan coba lagi.")
+      }
     } finally {
       setLoading(false)
     }
@@ -55,8 +77,10 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-2xl p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
+            {generalError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {generalError}
+              </div>
             )}
 
             <div>
@@ -69,9 +93,14 @@ export default function RegisterPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent"
+                className={`w-full px-4 py-3 border ${
+                  fieldErrors.name ? "border-red-400" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent`}
                 placeholder="John Doe"
               />
+              {fieldErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>
+              )}
             </div>
 
             <div>
@@ -84,9 +113,14 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent"
+                className={`w-full px-4 py-3 border ${
+                  fieldErrors.email ? "border-red-400" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent`}
                 placeholder="admin@example.com"
               />
+              {fieldErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div>
@@ -100,7 +134,9 @@ export default function RegisterPage() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent"
+                  className={`w-full px-4 py-3 border ${
+                    fieldErrors.password ? "border-red-400" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent`}
                   placeholder="••••••••"
                 />
                 <button
@@ -111,6 +147,9 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-red-500 text-sm mt-1">{fieldErrors.password}</p>
+              )}
             </div>
 
             <div>
@@ -123,8 +162,12 @@ export default function RegisterPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   required
                   value={formData.password_confirmation}
-                  onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent"
+                  onChange={(e) =>
+                    setFormData({ ...formData, password_confirmation: e.target.value })
+                  }
+                  className={`w-full px-4 py-3 border ${
+                    fieldErrors.password_confirmation ? "border-red-400" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6582e6] focus:border-transparent`}
                   placeholder="••••••••"
                 />
                 <button
@@ -135,6 +178,9 @@ export default function RegisterPage() {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {fieldErrors.password_confirmation && (
+                <p className="text-red-500 text-sm mt-1">{fieldErrors.password_confirmation}</p>
+              )}
             </div>
 
             <button

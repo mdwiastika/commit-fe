@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
+import { LoadingSpinner } from '@/components/loading-spinner'
+
 
 interface QuizOption {
   id: string
@@ -199,9 +201,15 @@ export default function QuizPage() {
   // Loading state
   if (isLoading || !quizData || !quizData.quiz_details) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#eef3ff] to-white">
-        <p className="text-gray-600 text-lg">Loading quiz...</p>
-      </div>
+      <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-[#eef3ff] to-white">
+      {/* Spinner menutupi layar */}
+      <LoadingSpinner />
+
+      {/* Teks muncul di atas spinner */}
+      <p className="absolute text-gray-700 text-lg font-medium z-[60] mt-28">
+        Loading Quiz...
+      </p>
+    </div>
     )
   }
 
