@@ -5,12 +5,14 @@ import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { Crown, User, Medal, LogOut } from 'lucide-react'
 import { useRouter } from "next/navigation"
+import { useAuth } from '@/contexts/auth-context'
 
 export default function ProfilPage() {
   const [leaderboards, setLeaderboards] = useState<any[]>([])
   const [userRank, setUserRank] = useState<number | null>(null)
   const [userScore, setUserScore] = useState<string>('0')
   const [isLoaded, setIsLoaded] = useState(false)
+  const { logout } = useAuth();
 
   // Dummy user
   const user = {
@@ -53,7 +55,7 @@ export default function ProfilPage() {
     const router = useRouter()
 
     const handleLogout = () => {
-    localStorage.removeItem("auth_token")
+    logout()
     router.push("/login")
   }
 
