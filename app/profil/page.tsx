@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { Crown, User, Medal, LogOut } from 'lucide-react'
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function ProfilPage() {
@@ -30,11 +30,12 @@ export default function ProfilPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
       const res = await fetch(`${API_URL}/auth/me`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -59,7 +60,8 @@ export default function ProfilPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
       const res = await fetch(`${API_URL}/leaderboard`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
@@ -77,9 +79,9 @@ export default function ProfilPage() {
     }
   }
 
-    const handleLogout = () => {
+  const handleLogout = () => {
     logout()
-    router.push("/login")
+    router.push('/login')
   }
 
   const formatJoinDate = (dateString?: string) => {
@@ -108,10 +110,15 @@ export default function ProfilPage() {
               <div className="w-20 h-20 rounded-full bg-[#e3e9ff] flex items-center justify-center">
                 <User className="w-10 h-10 text-[#4b63d0]" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">{user.name ? user.name : 'Saif'}</h1>
-              <p className="text-gray-500">{user.email ? user.email : 'saif@gmail.com'}</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {user.name || 'Saif'}
+              </h1>
+              <p className="text-gray-500">{user.email || 'saif@gmail.com'}</p>
               <p className="text-gray-600 font-medium">
-                Saldo: Rp {Math.floor(parseFloat(user.balance ? user.balance : 0)).toLocaleString('id-ID')}
+                Saldo: Rp{' '}
+                {Math.floor(parseFloat(user.balance || 0)).toLocaleString(
+                  'id-ID',
+                )}
               </p>
               <p className="text-gray-400 text-sm">
                 Bergabung sejak {formatJoinDate(user.created_at)}
@@ -137,7 +144,9 @@ export default function ProfilPage() {
 
           {/* Jika belum ada data */}
           {leaderboards.length === 0 ? (
-            <p className="text-center text-gray-500 italic">Memuat leaderboard...</p>
+            <p className="text-center text-gray-500 italic">
+              Memuat leaderboard...
+            </p>
           ) : (
             <>
               {/* Top 3 Podium - Luxury Version */}
@@ -146,7 +155,7 @@ export default function ProfilPage() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-8 text-4xl animate-pulse">
                   ✨
                 </div>
-                
+
                 <div className="flex justify-center items-end gap-3 md:gap-6 relative">
                   {/* 2nd Place - Silver */}
                   {leaderboards[1] && (
@@ -167,7 +176,12 @@ export default function ProfilPage() {
                         </p>
                         <div className="bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <p className="text-xs md:text-sm text-gray-700 font-semibold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[1].transaction_details_sum_amount)).toLocaleString('id-ID')}
+                            Rp{' '}
+                            {Math.floor(
+                              parseFloat(
+                                leaderboards[1].transaction_details_sum_amount,
+                              ),
+                            ).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -180,7 +194,7 @@ export default function ProfilPage() {
                     <div className="flex flex-col items-center animate-[slideUp_0.8s_ease-out] relative z-10">
                       {/* Crown decoration */}
                       <Crown className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 mb-1 animate-bounce" />
-                      
+
                       <div className="relative mb-3">
                         <div className="absolute inset-0 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full blur-xl opacity-70 animate-pulse"></div>
                         <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 flex items-center justify-center border-4 border-white shadow-2xl transform hover:scale-110 transition-transform">
@@ -190,16 +204,23 @@ export default function ProfilPage() {
                           1
                         </div>
                       </div>
-                      
+
                       <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 shadow-2xl rounded-t-3xl p-5 md:p-6 w-32 md:w-40 border-t-4 border-yellow-400 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"></div>
-                        <div className="absolute top-2 right-2 text-xl animate-spin-slow">⭐</div>
+                        <div className="absolute top-2 right-2 text-xl animate-spin-slow">
+                          ⭐
+                        </div>
                         <p className="font-bold text-gray-900 text-sm md:text-base text-center truncate mb-2">
                           {leaderboards[0].name}
                         </p>
                         <div className="bg-gradient-to-br from-yellow-100 to-amber-100 rounded-lg p-2 backdrop-blur-sm border border-yellow-300 shadow-inner">
                           <p className="text-sm md:text-base text-amber-800 font-bold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[0].transaction_details_sum_amount)).toLocaleString('id-ID')}
+                            Rp{' '}
+                            {Math.floor(
+                              parseFloat(
+                                leaderboards[0].transaction_details_sum_amount,
+                              ),
+                            ).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -226,7 +247,12 @@ export default function ProfilPage() {
                         </p>
                         <div className="bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <p className="text-xs md:text-sm text-amber-800 font-semibold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[2].transaction_details_sum_amount)).toLocaleString('id-ID')}
+                            Rp{' '}
+                            {Math.floor(
+                              parseFloat(
+                                leaderboards[2].transaction_details_sum_amount,
+                              ),
+                            ).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -236,15 +262,22 @@ export default function ProfilPage() {
                 </div>
 
                 {/* Confetti decorations */}
-                <div className="absolute bottom-0 left-0 text-2xl animate-bounce">🎊</div>
-                <div className="absolute bottom-0 right-0 text-2xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎉</div>
+                <div className="absolute bottom-0 left-0 text-2xl animate-bounce">
+                  🎊
+                </div>
+                <div
+                  className="absolute bottom-0 right-0 text-2xl animate-bounce"
+                  style={{ animationDelay: '0.2s' }}
+                >
+                  🎉
+                </div>
               </div>
 
               {/* Rank 4–10 */}
               <div className="space-y-3">
                 {leaderboards.slice(3, 10).map((item, index) => {
                   const rank = index + 4
-                  const isCurrentUser = item.name === user.name
+                  const isCurrentUser = user?.name && item.name === user.name
                   return (
                     <div
                       key={item.id}
@@ -262,9 +295,9 @@ export default function ProfilPage() {
                       </div>
                       <span className="text-gray-600 text-sm">
                         Rp{' '}
-                        {Math.floor(parseFloat(item.transaction_details_sum_amount)).toLocaleString(
-                          'id-ID'
-                        )}
+                        {Math.floor(
+                          parseFloat(item.transaction_details_sum_amount),
+                        ).toLocaleString('id-ID')}
                       </span>
                     </div>
                   )
