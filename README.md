@@ -1,30 +1,46 @@
-# UI/UX Design
+# 📘 Commit — Bangun Konsistensi Belajarmu dengan Tanggung Jawab Nyata
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+**Commit** adalah aplikasi pembentuk kebiasaan belajar IT yang membantu pengguna tetap konsisten dengan sistem **deposit dan validasi hasil belajar**.  
+Jika pengguna tidak belajar sesuai rencana, deposit akan **didonasikan**, menciptakan rasa tanggung jawab dan komitmen untuk terus berkembang.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/saifmusyantos-projects/v0-ui-ux-design)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/vO0oDP2Mj2T)
+---
 
-## Overview
+## 🚀 Fitur Utama
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+### 🎯 1. Buat Roadmap Belajar
+- Pilih roadmap sesuai bidang IT yang ingin kamu kuasai (misalnya Frontend, Backend, atau Data Science).  
+- Setiap roadmap berisi target dan tugas belajar yang jelas.
 
-## Deployment
+### 💰 2. Sistem Deposit & Punishment
+- Gunakan deposit sebagai bentuk komitmen belajar.  
+- Jika kamu tidak menyelesaikan tugas sesuai jadwal, depositmu akan **didonasikan otomatis**.
 
-Your project is live at:
+### ✅ 3. Validasi Hasil Belajar
+- Setelah menyelesaikan tugas, kamu perlu mengunggah bukti hasil belajar.  
+- Sistem akan memvalidasi apakah tugas sudah sesuai target.
 
-**[https://vercel.com/saifmusyantos-projects/v0-ui-ux-design](https://vercel.com/saifmusyantos-projects/v0-ui-ux-design)**
+### 📊 4. Progress Tracker
+- Pantau perkembangan belajarmu dengan grafik dan statistik mingguan.  
+- Dapatkan insight tentang seberapa konsisten kamu belajar.
 
-## Build your app
+### 🧠 5. Komunitas Pembelajar
+- Bergabung dengan komunitas pengguna Commit lainnya.  
+- Dapatkan motivasi, tantangan mingguan, dan sistem ranking konsistensi.
 
-Continue building your app on:
+---
 
-**[https://v0.app/chat/projects/vO0oDP2Mj2T](https://v0.app/chat/projects/vO0oDP2Mj2T)**
+## 🧩 Arsitektur & Teknologi
 
-## How It Works
+| Layer | Teknologi |
+|-------|------------|
+| **Frontend** | Flutter |
+| **Backend** | Firebase + Gemini AI |
+| **Database** | Firestore |
+| **Auth** | Firebase Authentication |
+| **Cloud Function (AI Analysis)** | Gemini AI (Google Generative AI) |
+| **Hosting** | Firebase Hosting |
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+---
+
+## 🗂️ Struktur Fitur
+
