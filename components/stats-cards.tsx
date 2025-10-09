@@ -7,56 +7,66 @@ export function StatsCards({
   streak,
   balance,
   donation,
+  remainingDays,
 }: {
   streak?: number;
   balance?: string;
   donation?: string;
+  remainingDays?: number;
 }) {
+  const canWithdraw = remainingDays !== undefined && remainingDays <= 0;
+
   const cards = [
     {
       title: "Streak belajar",
       value: streak?.toString() || "0",
       icon: <Flame className="w-5 h-5 text-[#ea3829]" />,
-      color: "bg-white/70",
+      color: "bg-white/80",
       type: "streak",
     },
     {
       title: "Dompet Komitmen",
-      value: balance || "0",
+      value: balance ? `${balance}` : "0",
       icon: <Wallet className="w-5 h-5 text-[#4b63d0]" />,
-      color: "bg-white/70",
+      color: "bg-white/80",
       type: "wallet",
     },
     {
       title: "Donasi",
-      value: donation || "0",
+      value: donation ? `${donation}` : "0",
       icon: <Heart className="w-5 h-5 text-[#ea3829]" />,
-      color: "bg-white/70",
+      color: "bg-white/80",
       type: "donation",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {cards.map((card, i) => (
         <motion.div
           key={i}
-          whileHover={{ y: -4, scale: 1.02 }}
+          whileHover={{ y: -3, scale: 1.02 }}
           transition={{ duration: 0.2 }}
-          className={`${card.color} rounded-2xl p-5 border border-[#e0e6ff]/60 backdrop-blur-md shadow-sm`}
+          className={`${card.color} rounded-2xl p-6 border border-[#e0e6ff]/70 shadow-sm backdrop-blur-md flex flex-col justify-between`}
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[#5f6265] text-sm">{card.title}</span>
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <span className="text-gray-600 text-sm font-medium tracking-tight">
+              {card.title}
+            </span>
             <div className="flex items-center gap-2">
               {card.icon}
-              <span className="text-[#121212] font-semibold">{card.value}</span>
+              <span className="text-gray-900 font-semibold text-base">
+                {card.value}
+              </span>
             </div>
           </div>
 
-          {/* Button Tarik Uang hanya untuk card Dompet Komitmen */}
+          {/* Button hanya muncul jika sudah bisa tarik */}
+          {/* {card.type === "wallet" && canWithdraw && ( */}
           {card.type === "wallet" && (
-            <Link href="/payout">
-              <button className="w-full bg-gradient-to-r from-[#6582e6] to-[#5571d5] text-white py-2 px-4 rounded-lg font-medium hover:shadow-md transition-all text-sm">
+            <Link href="/payout" className="mt-5">
+              <button className="w-full bg-gradient-to-r from-[#6582e6] to-[#5571d5] text-white py-2.5 px-4 rounded-lg font-medium text-sm hover:shadow-md transition-all duration-200">
                 Tarik Uang
               </button>
             </Link>

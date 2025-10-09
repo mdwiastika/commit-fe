@@ -130,7 +130,7 @@ export default function RiwayatPage() {
             {history?.transaction.details.map((item, i) => (
               <div
                 key={item.id}
-                onClick={() => openModal(item, i + 1)}
+                onClick={() => openModal(item, history.transaction.details.length - i)}
                 className={`p-5 rounded-2xl border transition-all cursor-pointer hover:-translate-y-[2px] hover:shadow-md ${
                   item.amount > 0
                     ? 'border-green-200 bg-green-50 hover:bg-green-100'
@@ -140,7 +140,7 @@ export default function RiwayatPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Day {i + 1}{' '}
+                        Day {history.transaction.details.length - i}{' '}
                       {item.roadmap_details && (
                         <span className="text-gray-700">
                           :{' '}

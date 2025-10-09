@@ -136,7 +136,6 @@ export default function QuizResultsPage() {
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
       const response = await fetch(`${API_URL}/dashboard`, {
         method: 'GET',
         headers: {
@@ -150,11 +149,21 @@ export default function QuizResultsPage() {
 
       const result = await response.json()
       console.log(result)
-      setDashboardInfo(result.data)
+
+      // Ambil data balance dari user
+      const data = result.data
+      setDashboardInfo({
+        ...data,
+        user: {
+          ...data.user,
+          balance: data.user?.balance || 0,
+        },
+      })
     } catch (error) {
       console.error('Error:', error)
     }
   }
+
 
   const handleRetryQuiz = async () => {
     router.push('/quiz')
@@ -374,7 +383,9 @@ export default function QuizResultsPage() {
                 </div>
                 <div className="text-white">
                   <div className="text-sm opacity-90">Dompet Komitmen</div>
-                  <div className="text-2xl font-bold">Rp 345.000</div>
+                  <div className="text-2xl font-bold">
+                    {dashboardInfo.user?.balance?.toLocaleString('id-ID') || 0}
+                  </div>
                 </div>
               </motion.div>
             </div>

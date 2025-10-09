@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, Map, Sparkles } from 'lucide-react'
+import { ChevronRight, Map, Search } from 'lucide-react'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useCheckTransactionStatus } from '@/hooks/checkTransactionStatus'
 import { LoadingSpinner } from '@/components/loading-spinner'
@@ -17,6 +17,7 @@ function PemilihanPembelajaran() {
   const router = useRouter()
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { transactionCheckLoading } = useCheckTransactionStatus()
 
@@ -54,6 +55,13 @@ function PemilihanPembelajaran() {
     fetchRoadmaps()
   }, [])
 
+  // Filter roadmaps berdasarkan search query
+  const filteredRoadmaps = roadmaps.filter(
+    (roadmap) =>
+      roadmap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      roadmap.description.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   if (transactionCheckLoading || loading) {
     return <LoadingSpinner />
   }
@@ -70,7 +78,7 @@ function PemilihanPembelajaran() {
     <div className="min-h-screen bg-[#fafafa] px-6 py-12 flex justify-center items-start">
       <div className="max-w-5xl w-full animate-fadeIn">
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-[#2c2e31] mb-2">
             Pilih Roadmap Belajarmu
           </h1>
@@ -78,6 +86,20 @@ function PemilihanPembelajaran() {
             Mulailah perjalanan belajarmu dengan roadmap yang sesuai minat dan
             tujuanmu
           </p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari roadmap berdasarkan nama atau deskripsi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6582e6]/30 focus:border-[#6582e6] transition-all shadow-sm"
+            />
+          </div>
         </div>
 
         {/* Tombol Custom Roadmap */}
@@ -101,8 +123,8 @@ function PemilihanPembelajaran() {
 
         {/* Daftar Roadmap */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {roadmaps.length > 0 ? (
-            roadmaps.map((roadmap, i) => (
+          {filteredRoadmaps.length > 0 ? (
+            filteredRoadmaps.map((roadmap, i) => (
               <button
                 key={roadmap.id}
                 onClick={() => router.push(`/roadmap-detail/${roadmap.id}`)}
@@ -122,6 +144,12 @@ function PemilihanPembelajaran() {
                 <ChevronRight className="w-6 h-6 text-[#6582e6] flex-shrink-0 mt-1" />
               </button>
             ))
+          ) : searchQuery ? (
+            <div className="col-span-2 text-center py-12">
+              <p className="text-gray-500 text-lg">
+                Tidak ada roadmap yang sesuai dengan pencarian "{searchQuery}"
+              </p>
+            </div>
           ) : (
             <p className="text-center col-span-2 text-gray-500">
               Belum ada roadmap tersedia.

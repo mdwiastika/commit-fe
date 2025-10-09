@@ -24,7 +24,7 @@ export function LearningHistory({ history }: { history: any[] }) {
       </div>
 
       <div className="space-y-3">
-        {history.map((item, i) => (
+        {history.slice(-6).reverse().map((item, i) => (
           <motion.div
             key={i}
             whileHover={{ scale: 1.01 }}
@@ -36,7 +36,9 @@ export function LearningHistory({ history }: { history: any[] }) {
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[#121212] font-medium">Day {i + 1}:</span>
+                <span className="text-[#121212] font-medium">
+                  Day {history.length - i}:
+                </span>
                 <span className="text-[#5f6265]">
                   {item.roadmap_details.map((rd: any) => rd.name).join(', ')}
                 </span>

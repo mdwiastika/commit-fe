@@ -103,6 +103,7 @@ function DashboardContent() {
           streak={dashboardInfo.streak}
           balance={dashboardInfo.user?.balance?.toString()}
           donation={dashboardInfo.donation?.toString()}
+          remainingDays={dashboardInfo.remaining_days ? parseInt(dashboardInfo.remaining_days.split(' ')[0]) : 0}
         />
         <LearningHistory history={dashboardInfo.history_details} />
       </div>

@@ -2,10 +2,10 @@
 
 import { Footer } from '@/components/footer'
 import { Navigation } from '@/components/navigation'
-import { ChevronRight, Target } from 'lucide-react'
+import { ChevronRight, Target, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion' // ✅ Tambahkan ini
+import { motion } from 'framer-motion'
 
 export default function RoadmapPage() {
   const [currentRoadmap, setCurrentRoadmap] = useState(
@@ -22,6 +22,7 @@ export default function RoadmapPage() {
       roadmap_details_count: number
     }[],
   )
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchRoadmaps()
@@ -57,11 +58,19 @@ export default function RoadmapPage() {
     }
   }
 
+  // Filter roadmaps berdasarkan search query
+  const filteredOtherRoadmaps = otherRoadmaps.filter((roadmap) =>
+    roadmap.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Check if current roadmap matches search
+  const showCurrentRoadmap = currentRoadmap?.id && 
+    (searchQuery === '' || currentRoadmap.name.toLowerCase().includes(searchQuery.toLowerCase()))
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e9edff] to-white px-6 pb-24 md:pb-4">
       <Navigation currentPage="roadmap" />
 
-      {/* Tambahkan motion di sini */}
       <motion.main
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,8 +95,27 @@ export default function RoadmapPage() {
           <Target className="w-8 h-8 md:w-10 md:h-10 text-[#4b63d0]" />
         </motion.div>
 
+        {/* Search Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari roadmap..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white/90 border border-[#4b63d0]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4b63d0]/30 focus:border-[#4b63d0] transition-all"
+            />
+          </div>
+        </motion.div>
+
         {/* Current Roadmap */}
-        {currentRoadmap?.id && (
+        {showCurrentRoadmap && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,32 +158,40 @@ export default function RoadmapPage() {
             <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {otherRoadmaps.map((roadmap, i) => (
-              <motion.div
-                key={roadmap.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
-              >
-                <Link href={`/roadmap/${roadmap.id}`}>
-                  <div className="bg-white/90 border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_6px_16px_rgba(75,99,208,0.15)] hover:-translate-y-1 transition-all cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {roadmap.name}
-                        </h3>
-                        <p className="text-gray-600">
-                          {roadmap.roadmap_details_count} Materi
-                        </p>
+          {filteredOtherRoadmaps.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredOtherRoadmaps.map((roadmap, i) => (
+                <motion.div
+                  key={roadmap.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
+                >
+                  <Link href={`/roadmap/${roadmap.id}`}>
+                    <div className="bg-white/90 border border-[#4b63d0]/20 rounded-2xl p-6 hover:shadow-[0_6px_16px_rgba(75,99,208,0.15)] hover:-translate-y-1 transition-all cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            {roadmap.name}
+                          </h3>
+                          <p className="text-gray-600">
+                            {roadmap.roadmap_details_count} Materi
+                          </p>
+                        </div>
+                        <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
                       </div>
-                      <ChevronRight className="w-6 h-6 text-[#4b63d0]" />
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                Tidak ada roadmap yang sesuai dengan pencarian
+              </p>
+            </div>
+          )}
         </motion.section>
       </motion.main>
 

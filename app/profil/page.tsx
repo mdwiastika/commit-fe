@@ -12,19 +12,44 @@ export default function ProfilPage() {
   const [userRank, setUserRank] = useState<number | null>(null)
   const [userScore, setUserScore] = useState<string>('0')
   const [isLoaded, setIsLoaded] = useState(false)
-  const { logout } = useAuth();
-
-  // Dummy user
-  const user = {
-    name: 'Saif Aja',
-    email: 'saifmusyanto55@gmail.com',
-    joinedAt: '5 Oktober 2025',
-  }
+  const [user, setUser] = useState<any | null>(null)
+  const { logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
+    fetchUserProfile()
     fetchLeaderboard()
     setTimeout(() => setIsLoaded(true), 100)
   }, [])
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.error('Token tidak ditemukan')
+        return
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
+      const res = await fetch(`${API_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) throw new Error('Gagal mengambil profil user')
+
+      const result = await res.json()
+      if (result?.status && result?.data) {
+        setUser(result.data)
+      } else {
+        console.warn('Format response tidak sesuai')
+      }
+    } catch (error) {
+      console.error('Gagal memuat profil:', error)
+    }
+  }
 
   const fetchLeaderboard = async () => {
     try {
@@ -52,11 +77,19 @@ export default function ProfilPage() {
     }
   }
 
-    const router = useRouter()
-
     const handleLogout = () => {
     logout()
     router.push("/login")
+  }
+
+  const formatJoinDate = (dateString?: string) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
   }
 
   return (
@@ -70,23 +103,30 @@ export default function ProfilPage() {
       >
         {/* User Info */}
         <section className="bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm rounded-3xl p-6 md:p-8 mb-10 text-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-full bg-[#e3e9ff] flex items-center justify-center">
-              <User className="w-10 h-10 text-[#4b63d0]" />
+          {user ? (
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-full bg-[#e3e9ff] flex items-center justify-center">
+                <User className="w-10 h-10 text-[#4b63d0]" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">{user.name ? user.name : 'Saif'}</h1>
+              <p className="text-gray-500">{user.email ? user.email : 'saif@gmail.com'}</p>
+              <p className="text-gray-600 font-medium">
+                Saldo: Rp {Math.floor(parseFloat(user.balance ? user.balance : 0)).toLocaleString('id-ID')}
+              </p>
+              <p className="text-gray-400 text-sm">
+                Bergabung sejak {formatJoinDate(user.created_at)}
+              </p>
+              <button
+                onClick={handleLogout}
+                className="mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 text-white font-medium shadow-md hover:bg-red-700 active:scale-95 transition-all duration-200"
+              >
+                <LogOut className="w-4 h-4" />
+                Keluar
+              </button>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-gray-500">{user.email}</p>
-            <p className="text-gray-400 text-sm">
-              Bergabung sejak {user.joinedAt}
-            </p>
-            <button
-              onClick={handleLogout}
-              className="mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 text-white font-medium shadow-md hover:bg-red-700 active:scale-95 transition-all duration-200"
-            >
-              <LogOut className="w-4 h-4" />
-              Keluar
-            </button>
-          </div>
+          ) : (
+            <p className="text-gray-500 italic">Memuat data profil...</p>
+          )}
         </section>
 
         {/* Leaderboard */}
@@ -127,7 +167,7 @@ export default function ProfilPage() {
                         </p>
                         <div className="bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <p className="text-xs md:text-sm text-gray-700 font-semibold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[1].balance)).toLocaleString('id-ID')}
+                            Rp {Math.floor(parseFloat(leaderboards[1].transaction_details_sum_amount)).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -159,7 +199,7 @@ export default function ProfilPage() {
                         </p>
                         <div className="bg-gradient-to-br from-yellow-100 to-amber-100 rounded-lg p-2 backdrop-blur-sm border border-yellow-300 shadow-inner">
                           <p className="text-sm md:text-base text-amber-800 font-bold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[0].balance)).toLocaleString('id-ID')}
+                            Rp {Math.floor(parseFloat(leaderboards[0].transaction_details_sum_amount)).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -186,7 +226,7 @@ export default function ProfilPage() {
                         </p>
                         <div className="bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <p className="text-xs md:text-sm text-amber-800 font-semibold text-center">
-                            Rp {Math.floor(parseFloat(leaderboards[2].balance)).toLocaleString('id-ID')}
+                            Rp {Math.floor(parseFloat(leaderboards[2].transaction_details_sum_amount)).toLocaleString('id-ID')}
                           </p>
                         </div>
                       </div>
@@ -222,7 +262,7 @@ export default function ProfilPage() {
                       </div>
                       <span className="text-gray-600 text-sm">
                         Rp{' '}
-                        {Math.floor(parseFloat(item.balance)).toLocaleString(
+                        {Math.floor(parseFloat(item.transaction_details_sum_amount)).toLocaleString(
                           'id-ID'
                         )}
                       </span>
