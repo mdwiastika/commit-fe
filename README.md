@@ -13,34 +13,8 @@ Jika pengguna tidak belajar sesuai rencana, deposit akan **didonasikan**, mencip
 
 ### 💰 2. Sistem Deposit & Punishment
 - Gunakan deposit sebagai bentuk komitmen belajar.  
-- Jika kamu tidak menyelesaikan tugas sesuai jadwal, depositmu akan **didonasikan otomatis**.
+- Jika kamu tidak menyelesaikan tugas sesuai jadwal, depositmu akan **didonasikan secara transparan**.
 
 ### ✅ 3. Validasi Hasil Belajar
-- Setelah menyelesaikan tugas, kamu perlu mengunggah bukti hasil belajar.  
+- Setelah menyelesaikan tugas, kamu perlu menuliskan rangkuman belajar.  
 - Sistem akan memvalidasi apakah tugas sudah sesuai target.
-
-### 📊 4. Progress Tracker
-- Pantau perkembangan belajarmu dengan grafik dan statistik mingguan.  
-- Dapatkan insight tentang seberapa konsisten kamu belajar.
-
-### 🧠 5. Komunitas Pembelajar
-- Bergabung dengan komunitas pengguna Commit lainnya.  
-- Dapatkan motivasi, tantangan mingguan, dan sistem ranking konsistensi.
-
----
-
-## 🧩 Arsitektur & Teknologi
-
-| Layer | Teknologi |
-|-------|------------|
-| **Frontend** | Flutter |
-| **Backend** | Firebase + Gemini AI |
-| **Database** | Firestore |
-| **Auth** | Firebase Authentication |
-| **Cloud Function (AI Analysis)** | Gemini AI (Google Generative AI) |
-| **Hosting** | Firebase Hosting |
-
----
-
-## 🗂️ Struktur Fitur
-
