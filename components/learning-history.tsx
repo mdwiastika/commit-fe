@@ -24,7 +24,7 @@ export function LearningHistory({ history }: { history: any[] }) {
       </div>
 
       <div className="space-y-3">
-        {history.slice(-6).reverse().map((item, i) => (
+        {history.map((item, i) => (
           <motion.div
             key={i}
             whileHover={{ scale: 1.01 }}
