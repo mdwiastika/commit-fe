@@ -68,7 +68,7 @@ export default function KomitmenPage() {
         </div>
 
         <div className="space-y-4 mb-8 relative z-10">
-          {[21, 30, 120].map((d) => (
+          {[21, 30, 60, 120].map((d) => (
             <button
               key={d}
               onClick={() => {
