@@ -133,6 +133,10 @@ function ProgressPageContent() {
           setTimeout(() => setShowSnackbar(false), 3000)
           return
         } else if (quiz_status !== 'success') {
+          setError('Anda memiliki kuis yang belum diselesaikan.')
+          setShowSnackbar(true)
+          setIsSubmitting(false)
+          setTimeout(() => setShowSnackbar(false), 3000)
           router.push('/quiz')
           return
         } else {
