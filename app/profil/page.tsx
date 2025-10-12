@@ -277,7 +277,7 @@ export default function ProfilPage() {
               <div className="space-y-3">
                 {leaderboards.slice(3, 10).map((item, index) => {
                   const rank = index + 4
-                  const isCurrentUser = user?.name && item.name === user.name
+                  const isCurrentUser = user?.name && item.id === user.id
                   return (
                     <div
                       key={item.id}
