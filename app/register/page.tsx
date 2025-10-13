@@ -50,11 +50,10 @@ export default function RegisterPage() {
 
       const { message, errors } = responseData
 
-      // Jika ada validasi Laravel
       if (errors && typeof errors === "object") {
         const newErrors: Record<string, string> = {}
         for (const key in errors) {
-          newErrors[key] = errors[key][0] // ambil pesan pertama
+          newErrors[key] = errors[key][0]
         }
         setFieldErrors(newErrors)
       } else if (message) {

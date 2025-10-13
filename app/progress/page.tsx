@@ -21,74 +21,83 @@ function ProgressPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchMaterials()
-  }, [])
+    useEffect(() => {
+      fetchMaterials()
+    }, [])
 
-  const fetchMaterials = async () => {
+    useEffect(() => {
+      localStorage.setItem('progress_draft', progressText)
+    }, [progressText])
+
+    useEffect(() => {
+      const savedText = localStorage.getItem('progress_draft')
+      if (savedText) {
+        setProgressText(savedText)
+      }
+    }, [])
+
+    useEffect(() => {
+      localStorage.removeItem('quiz_draft')
+      localStorage.removeItem('quiz_answers')
+      localStorage.removeItem('quiz_current_question')
+      localStorage.removeItem('quiz_time_left')
+      localStorage.removeItem('quiz_pending_submissions')
+      console.log('🧹 Quiz data dari localStorage telah dihapus.')
+    }, [])
+
+    useEffect(() => {
+      const handleOnline = async () => {
+        const offlineData = localStorage.getItem('offline_summary')
+        if (offlineData) {
+          try {
+            const { materialIds, progressText } = JSON.parse(offlineData)
+            await submitSummary(materialIds, progressText, true) 
+            localStorage.removeItem('offline_summary')
+          } catch (err) {
+            console.error('Gagal auto-submit offline data:', err)
+          }
+        }
+      }
+
+      window.addEventListener('online', handleOnline)
+      return () => window.removeEventListener('online', handleOnline)
+    }, [])
+
+    const fetchMaterials = async () => {
+      try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) return
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const response = await fetch(`${API_URL}/roadmap-details`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const result = await response.json()
+        setMaterials(result.data)
+      } catch (error) {
+        console.error('Error:', error)
+        setError('Gagal mengambil data materi')
+      }
+    }
+
+    const removeFile = () => setUploadedFile(null)
+
+    const handleMaterialSelect = (material: any) => {
+      setSelectedMaterial(material.name)
+      setIsDropdownOpen(false)
+      if (!studiedMaterials.find((m) => m.id === material.id))
+        setStudiedMaterials([...studiedMaterials, material])
+    }
+
+    const handleRemoveMaterial = (id: string) => {
+      setStudiedMaterials(studiedMaterials.filter((m) => m.id !== id))
+    }
+
+    const submitSummary = async (materialIds: string[], text: string, fromOffline = false) => {
     try {
       const token = localStorage.getItem('auth_token')
-      if (!token) {
-        console.error('Token tidak ditemukan')
-        return
-      }
+      if (!token) throw new Error('Token tidak ditemukan, silakan login ulang')
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      const response = await fetch(`${API_URL}/roadmap-details`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!response.ok) {
-        throw new Error('Gagal mengambil data materi')
-      }
-      const result = await response.json()
-      setMaterials(result.data)
-    } catch (error) {
-      console.error('Error:', error)
-      setError('Gagal mengambil data materi')
-    }
-  }
-
-  const removeFile = () => setUploadedFile(null)
-
-  const handleMaterialSelect = (material: any) => {
-    setSelectedMaterial(material.name)
-    setIsDropdownOpen(false)
-    if (!studiedMaterials.find((m) => m.id === material.id))
-      setStudiedMaterials([...studiedMaterials, material])
-  }
-
-  const handleRemoveMaterial = (id: string) => {
-    setStudiedMaterials(studiedMaterials.filter((m) => m.id !== id))
-  }
-
-  const handleSubmit = async () => {
-    if (!selectedMaterial || (!progressText && !uploadedFile)) {
-      setError('Silakan pilih materi dan isi progres belajar')
-      setShowSnackbar(true)
-      setTimeout(() => setShowSnackbar(false), 3000)
-      return
-    }
-
-    if (isSubmitting) return // Prevent double submission
-    setIsSubmitting(true)
-
-    try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
-        setError('Token tidak ditemukan, silakan login ulang')
-        setShowSnackbar(true)
-        setIsSubmitting(false)
-        return
-      }
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      const materialIds = studiedMaterials.map((m) => m.id)
-
-      console.log('Submitting summary with materials:', materialIds)
-
-      // Submit summary
       const response = await fetch(`${API_URL}/transactions/submit-summary`, {
         method: 'POST',
         headers: {
@@ -97,65 +106,78 @@ function ProgressPageContent() {
         },
         body: JSON.stringify({
           roadmap_detail_ids: materialIds,
-          body: progressText,
+          body: text,
         }),
       })
 
       const responseData = await response.json()
+      if (responseData.data?.quiz_status && responseData.data.quiz_status !== 'success') {
+        router.push('/quiz')
+      }
       console.log('Submit summary response:', responseData)
 
-      if (!response.ok) {
-        setError(responseData.message || 'Gagal mengirim progres belajar')
+      if (responseData.status === false) {
+        setError(responseData.message || 'Terjadi kesalahan.')
         setShowSnackbar(true)
-        setTimeout(() => setShowSnackbar(false), 3000)
-        setIsSubmitting(false)
+        setTimeout(() => {
+          setShowSnackbar(false)
+        }, 4000)
         return
       }
+
+      if (!response.ok) throw new Error(responseData.message || 'Gagal mengirim progres belajar')
+
       if (responseData.status === true) {
-        const quiz_status = responseData.data.quiz_status
-        if (quiz_status !== 'success') {
-          router.push('/quiz')
-          return
-        } else {
-          setError(
-            'Kamu sudah menyelesaikan semua kuis hari ini. Silakan tunggu hingga besok untuk mengirim progres lagi.',
-          )
+        localStorage.removeItem('progress_draft')
+        if (!fromOffline) {
+          setError('Progres berhasil dikirim!')
           setShowSnackbar(true)
-          setTimeout(() => setShowSnackbar(false), 5000)
-          router.push('/dashboard')
-        }
-      } else {
-        const quiz_status = responseData.data.quiz_status
-        if (quiz_status == null) {
-          setError(responseData.message || 'Gagal mengirim progres belajar')
-          setShowSnackbar(true)
-          setIsSubmitting(false)
           setTimeout(() => setShowSnackbar(false), 3000)
-          return
-        } else if (quiz_status !== 'success') {
-          setError('Anda memiliki kuis yang belum diselesaikan.')
-          setShowSnackbar(true)
-          setIsSubmitting(false)
-          setTimeout(() => setShowSnackbar(false), 3000)
-          router.push('/quiz')
-          return
-        } else {
-          setError(
-            'Kamu sudah menyelesaikan semua kuis hari ini. Silakan tunggu hingga besok untuk mengirim progres lagi.',
-          )
-          setShowSnackbar(true)
-          setTimeout(() => setShowSnackbar(false), 5000)
-          router.push('/dashboard')
         }
+
+        const quiz_status = responseData.data.quiz_status
+        if (quiz_status !== 'success') router.push('/quiz')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting progress:', error)
-      setError('Terjadi kesalahan saat mengirim data')
-      setShowSnackbar(true)
-      setTimeout(() => setShowSnackbar(false), 3000)
+      if (!fromOffline) {
+        setError(error.message || 'Terjadi kesalahan saat mengirim data')
+        setShowSnackbar(true)
+        setTimeout(() => setShowSnackbar(false), 3000)
+      }
+    } finally {
       setIsSubmitting(false)
     }
   }
+
+
+    const handleSubmit = async () => {
+      if (!selectedMaterial || (!progressText && !uploadedFile)) {
+        setError('Silakan pilih materi dan isi progres belajar')
+        setShowSnackbar(true)
+        setTimeout(() => setShowSnackbar(false), 3000)
+        return
+      }
+
+      if (isSubmitting) return
+      setIsSubmitting(true)
+
+      const materialIds = studiedMaterials.map((m) => m.id)
+
+      if (!navigator.onLine) {
+        localStorage.setItem(
+          'offline_summary',
+          JSON.stringify({ materialIds, progressText })
+        )
+        setError('📴 Kamu sedang offline. Progres disimpan di perangkat dan akan dikirim otomatis saat online.')
+        setShowSnackbar(true)
+        setTimeout(() => setShowSnackbar(false), 4000)
+        setIsSubmitting(false)
+        return
+      }
+
+      await submitSummary(materialIds, progressText)
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-16 md:pt-34 pb-24 md:pb-4">

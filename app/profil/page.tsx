@@ -103,7 +103,6 @@ export default function ProfilPage() {
           isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
         } max-w-4xl mx-auto w-full px-6 pt-6 md:pt-36 pb-24 md:pb-12`}
       >
-        {/* User Info */}
         <section className="bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm rounded-3xl p-6 md:p-8 mb-10 text-center">
           {user ? (
             <div className="flex flex-col items-center gap-3">

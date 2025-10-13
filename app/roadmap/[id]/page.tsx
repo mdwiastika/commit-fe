@@ -70,7 +70,6 @@ export default function RoadmapDetailPage({
     <div className="min-h-screen bg-gradient-to-b from-[#e9edff] to-white px-6 py-10 relative">
       <Navigation currentPage="roadmap" />
 
-      {/* Tombol Back untuk Mobile */}
       <button
         onClick={() => router.back()}
         className="md:hidden absolute top-6 left-6 bg-white border border-gray-200 p-2 rounded-full shadow-sm hover:shadow-md transition-all"
@@ -91,14 +90,25 @@ export default function RoadmapDetailPage({
                 {materials[0]?.roadmap?.description ||
                   'Pelajari materi yang sudah dirancang untuk membimbing kamu menguasai topik ini langkah demi langkah.'}
               </p>
+              <div className="mt-3 text-sm text-gray-600">
+                <p>
+                  Daftar dan urutan materi yang disediakan sudah direkomendasikan mengikuti{' '}
+                  <a 
+                    href="https://roadmap.sh" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:text-blue-800 font-medium underline"
+                  >
+                    roadmap.sh
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* subtle gradient overlay */}
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
@@ -153,7 +163,6 @@ export default function RoadmapDetailPage({
         )}
       </main>
 
-      {/* Tailwind animation */}
       <style jsx global>{`
         @keyframes fadeSlideIn {
           from {
