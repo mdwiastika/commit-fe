@@ -1,9 +1,62 @@
 'use client'
-import { Eye, ArrowRight } from 'lucide-react'
+import {
+  ArrowRight,
+  BookOpen,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudOff,
+  CloudRain,
+  CloudSun,
+  Sun,
+  MapPin,
+} from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
 export function LearningHistory({ history }: { history: any[] }) {
+  const getWeatherDescription = (code: number) => {
+    if (code === 0)
+      return {
+        icon: <Sun className="w-4 h-4 text-yellow-500" />,
+        description: 'Cerah',
+      }
+    if ([1, 2, 3].includes(code))
+      return {
+        icon: <CloudSun className="w-4 h-4 text-yellow-500" />,
+        description: 'Cerah berawan',
+      }
+    if ([45, 48].includes(code))
+      return {
+        icon: <CloudFog className="w-4 h-4 text-gray-500" />,
+        description: 'Berkabut',
+      }
+    if ([51, 53, 55, 56, 57].includes(code))
+      return {
+        icon: <CloudDrizzle className="w-4 h-4 text-blue-500" />,
+        description: 'Gerimis',
+      }
+    if ([61, 63, 65, 66, 67].includes(code))
+      return {
+        icon: <CloudRain className="w-4 h-4 text-blue-500" />,
+        description: 'Hujan',
+      }
+    if ([80, 81, 82].includes(code))
+      return {
+        icon: <CloudRain className="w-4 h-4 text-blue-500" />,
+        description: 'Hujan deras',
+      }
+    if ([95, 96, 99].includes(code))
+      return {
+        icon: <CloudLightning className="w-4 h-4 text-gray-700" />,
+        description: 'Badai petir',
+      }
+    return {
+      icon: <CloudOff className="w-4 h-4 text-gray-400" />,
+      description: 'Cuaca tidak diketahui',
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -50,6 +103,20 @@ export function LearningHistory({ history }: { history: any[] }) {
                   year: 'numeric',
                 })}
               </div>
+              {item.weather && (
+                <div className="flex items-center gap-2 text-sm mt-1">
+                  {getWeatherDescription(item.weather.weathercode || 0).icon}
+                  <span className="text-gray-600">
+                    {
+                      getWeatherDescription(item.weather.weathercode || 0)
+                        .description
+                    }
+                  </span>
+                  <span className="text-blue-600 font-medium">
+                    {item.weather.temperature}°C
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
