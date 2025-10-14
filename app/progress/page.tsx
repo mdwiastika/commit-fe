@@ -95,11 +95,11 @@ function ProgressPageContent() {
         setTimeout(() => setShowSnackbar(false), 3000)
 
         const quiz_status = responseData.data?.quiz_status
-        if (quiz_status && quiz_status !== 'success') {
+        if (quiz_status !== 'success') {
           router.push('/quiz')
         }
       }
-    } catch (error : any) {
+    } catch (error) {
       if (!fromOffline) {
         setError(error.message || 'Terjadi kesalahan saat mengirim data')
         setShowSnackbar(true)
