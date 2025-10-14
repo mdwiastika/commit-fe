@@ -99,7 +99,7 @@ function ProgressPageContent() {
           router.push('/quiz')
         }
       }
-    } catch (error) {
+    } catch (error : any) {
       if (!fromOffline) {
         setError(error.message || 'Terjadi kesalahan saat mengirim data')
         setShowSnackbar(true)

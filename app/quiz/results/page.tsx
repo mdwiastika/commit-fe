@@ -65,6 +65,11 @@ export default function QuizResultsPage() {
 
   useEffect(() => {
     fetchSubmitQuiz()
+    localStorage.removeItem('quiz_draft')
+    localStorage.removeItem('quiz_answers')
+    localStorage.removeItem('quiz_current_question')
+    localStorage.removeItem('quiz_time_left')
+    localStorage.removeItem('quiz_pending_submissions')
   }, [router])
 
   useEffect(() => {
@@ -163,7 +168,6 @@ export default function QuizResultsPage() {
       console.error('Error:', error)
     }
   }
-
 
   const handleRetryQuiz = async () => {
     router.push('/quiz')
