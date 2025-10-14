@@ -42,7 +42,6 @@ function ProgressPageContent() {
     localStorage.removeItem('quiz_current_question')
     localStorage.removeItem('quiz_time_left')
     localStorage.removeItem('quiz_pending_submissions')
-    console.log('🧹 Quiz data dari localStorage telah dihapus.')
   }, [])
 
   const submitSummary = async (
@@ -69,8 +68,6 @@ function ProgressPageContent() {
 
       const responseData = await response.json()
 
-      console.log('Submit summary response:', responseData)
-
       if (responseData.status === false) {
         setError(responseData.message || 'Terjadi kesalahan.')
         setShowSnackbar(true)
@@ -89,7 +86,6 @@ function ProgressPageContent() {
         localStorage.removeItem('progress_draft')
 
         if (fromOffline) {
-          console.log('✅ Offline data berhasil dikirim!')
           setError('✅ Data offline berhasil dikirim!')
         } else {
           setError('Progres berhasil dikirim!')
@@ -103,8 +99,7 @@ function ProgressPageContent() {
           router.push('/quiz')
         }
       }
-    } catch (error: any) {
-      console.error('Error submitting progress:', error)
+    } catch (error : any) {
       if (!fromOffline) {
         setError(error.message || 'Terjadi kesalahan saat mengirim data')
         setShowSnackbar(true)
@@ -116,26 +111,18 @@ function ProgressPageContent() {
   }
   useEffect(() => {
     const handleOnline = async () => {
-      console.log('🌐 Koneksi online terdeteksi!')
-
       const offlineData = localStorage.getItem('offline_summary')
       if (offlineData) {
-        console.log('📤 Mengirim data offline:', offlineData)
         try {
           const { materialIds, progressText } = JSON.parse(offlineData)
 
-          // Pastikan ada data yang valid
           if (materialIds && materialIds.length > 0 && progressText) {
             await submitSummary(materialIds, progressText, true)
             localStorage.removeItem('offline_summary')
-            console.log(
-              '✅ Data offline berhasil dikirim dan dihapus dari localStorage',
-            )
           } else {
             console.warn('⚠️ Data offline tidak lengkap, skip auto-submit')
           }
         } catch (err) {
-          console.error('❌ Gagal auto-submit offline data:', err)
           setError('Gagal mengirim data offline. Silakan coba manual.')
           setShowSnackbar(true)
           setTimeout(() => setShowSnackbar(false), 3000)
@@ -145,16 +132,14 @@ function ProgressPageContent() {
       }
     }
 
-    // Check saat mount jika sudah online dan ada data offline
     if (navigator.onLine) {
       handleOnline()
     }
 
-    // Listen untuk event online
     window.addEventListener('online', handleOnline)
 
     return () => window.removeEventListener('online', handleOnline)
-  }, []) // Dependency array kosong agar hanya run sekali
+  }, [])
 
   const fetchMaterials = async () => {
     try {
@@ -203,7 +188,6 @@ function ProgressPageContent() {
         'offline_summary',
         JSON.stringify({ materialIds, progressText }),
       )
-      console.log('📴 Data disimpan offline:', { materialIds, progressText })
       setError(
         '📴 Kamu sedang offline. Progres disimpan di perangkat dan akan dikirim otomatis saat online.',
       )
