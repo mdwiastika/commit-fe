@@ -21,78 +21,35 @@ function ProgressPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-    useEffect(() => {
-      fetchMaterials()
-    }, [])
+  useEffect(() => {
+    fetchMaterials()
+  }, [])
 
-    useEffect(() => {
-      localStorage.setItem('progress_draft', progressText)
-    }, [progressText])
+  useEffect(() => {
+    localStorage.setItem('progress_draft', progressText)
+  }, [progressText])
 
-    useEffect(() => {
-      const savedText = localStorage.getItem('progress_draft')
-      if (savedText) {
-        setProgressText(savedText)
-      }
-    }, [])
-
-    useEffect(() => {
-      localStorage.removeItem('quiz_draft')
-      localStorage.removeItem('quiz_answers')
-      localStorage.removeItem('quiz_current_question')
-      localStorage.removeItem('quiz_time_left')
-      localStorage.removeItem('quiz_pending_submissions')
-      console.log('🧹 Quiz data dari localStorage telah dihapus.')
-    }, [])
-
-    useEffect(() => {
-      const handleOnline = async () => {
-        const offlineData = localStorage.getItem('offline_summary')
-        if (offlineData) {
-          try {
-            const { materialIds, progressText } = JSON.parse(offlineData)
-            await submitSummary(materialIds, progressText, true) 
-            localStorage.removeItem('offline_summary')
-          } catch (err) {
-            console.error('Gagal auto-submit offline data:', err)
-          }
-        }
-      }
-
-      window.addEventListener('online', handleOnline)
-      return () => window.removeEventListener('online', handleOnline)
-    }, [])
-
-    const fetchMaterials = async () => {
-      try {
-        const token = localStorage.getItem('auth_token')
-        if (!token) return
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-        const response = await fetch(`${API_URL}/roadmap-details`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const result = await response.json()
-        setMaterials(result.data)
-      } catch (error) {
-        console.error('Error:', error)
-        setError('Gagal mengambil data materi')
-      }
+  useEffect(() => {
+    const savedText = localStorage.getItem('progress_draft')
+    if (savedText) {
+      setProgressText(savedText)
     }
+  }, [])
 
-    const removeFile = () => setUploadedFile(null)
+  useEffect(() => {
+    localStorage.removeItem('quiz_draft')
+    localStorage.removeItem('quiz_answers')
+    localStorage.removeItem('quiz_current_question')
+    localStorage.removeItem('quiz_time_left')
+    localStorage.removeItem('quiz_pending_submissions')
+    console.log('🧹 Quiz data dari localStorage telah dihapus.')
+  }, [])
 
-    const handleMaterialSelect = (material: any) => {
-      setSelectedMaterial(material.name)
-      setIsDropdownOpen(false)
-      if (!studiedMaterials.find((m) => m.id === material.id))
-        setStudiedMaterials([...studiedMaterials, material])
-    }
-
-    const handleRemoveMaterial = (id: string) => {
-      setStudiedMaterials(studiedMaterials.filter((m) => m.id !== id))
-    }
-
-    const submitSummary = async (materialIds: string[], text: string, fromOffline = false) => {
+  const submitSummary = async (
+    materialIds: string[],
+    text: string,
+    fromOffline = false,
+  ) => {
     try {
       const token = localStorage.getItem('auth_token')
       if (!token) throw new Error('Token tidak ditemukan, silakan login ulang')
@@ -111,9 +68,7 @@ function ProgressPageContent() {
       })
 
       const responseData = await response.json()
-      if (responseData.data?.quiz_status && responseData.data.quiz_status !== 'success') {
-        router.push('/quiz')
-      }
+
       console.log('Submit summary response:', responseData)
 
       if (responseData.status === false) {
@@ -125,18 +80,28 @@ function ProgressPageContent() {
         return
       }
 
-      if (!response.ok) throw new Error(responseData.message || 'Gagal mengirim progres belajar')
+      if (!response.ok)
+        throw new Error(
+          responseData.message || 'Gagal mengirim progres belajar',
+        )
 
       if (responseData.status === true) {
         localStorage.removeItem('progress_draft')
-        if (!fromOffline) {
+
+        if (fromOffline) {
+          console.log('✅ Offline data berhasil dikirim!')
+          setError('✅ Data offline berhasil dikirim!')
+        } else {
           setError('Progres berhasil dikirim!')
-          setShowSnackbar(true)
-          setTimeout(() => setShowSnackbar(false), 3000)
         }
 
-        const quiz_status = responseData.data.quiz_status
-        if (quiz_status !== 'success') router.push('/quiz')
+        setShowSnackbar(true)
+        setTimeout(() => setShowSnackbar(false), 3000)
+
+        const quiz_status = responseData.data?.quiz_status
+        if (quiz_status && quiz_status !== 'success') {
+          router.push('/quiz')
+        }
       }
     } catch (error: any) {
       console.error('Error submitting progress:', error)
@@ -149,35 +114,107 @@ function ProgressPageContent() {
       setIsSubmitting(false)
     }
   }
+  useEffect(() => {
+    const handleOnline = async () => {
+      console.log('🌐 Koneksi online terdeteksi!')
 
+      const offlineData = localStorage.getItem('offline_summary')
+      if (offlineData) {
+        console.log('📤 Mengirim data offline:', offlineData)
+        try {
+          const { materialIds, progressText } = JSON.parse(offlineData)
 
-    const handleSubmit = async () => {
-      if (!selectedMaterial || (!progressText && !uploadedFile)) {
-        setError('Silakan pilih materi dan isi progres belajar')
-        setShowSnackbar(true)
-        setTimeout(() => setShowSnackbar(false), 3000)
-        return
+          // Pastikan ada data yang valid
+          if (materialIds && materialIds.length > 0 && progressText) {
+            await submitSummary(materialIds, progressText, true)
+            localStorage.removeItem('offline_summary')
+            console.log(
+              '✅ Data offline berhasil dikirim dan dihapus dari localStorage',
+            )
+          } else {
+            console.warn('⚠️ Data offline tidak lengkap, skip auto-submit')
+          }
+        } catch (err) {
+          console.error('❌ Gagal auto-submit offline data:', err)
+          setError('Gagal mengirim data offline. Silakan coba manual.')
+          setShowSnackbar(true)
+          setTimeout(() => setShowSnackbar(false), 3000)
+        }
+      } else {
+        console.log('ℹ️ Tidak ada data offline yang perlu dikirim')
       }
-
-      if (isSubmitting) return
-      setIsSubmitting(true)
-
-      const materialIds = studiedMaterials.map((m) => m.id)
-
-      if (!navigator.onLine) {
-        localStorage.setItem(
-          'offline_summary',
-          JSON.stringify({ materialIds, progressText })
-        )
-        setError('📴 Kamu sedang offline. Progres disimpan di perangkat dan akan dikirim otomatis saat online.')
-        setShowSnackbar(true)
-        setTimeout(() => setShowSnackbar(false), 4000)
-        setIsSubmitting(false)
-        return
-      }
-
-      await submitSummary(materialIds, progressText)
     }
+
+    // Check saat mount jika sudah online dan ada data offline
+    if (navigator.onLine) {
+      handleOnline()
+    }
+
+    // Listen untuk event online
+    window.addEventListener('online', handleOnline)
+
+    return () => window.removeEventListener('online', handleOnline)
+  }, []) // Dependency array kosong agar hanya run sekali
+
+  const fetchMaterials = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) return
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${API_URL}/roadmap-details`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const result = await response.json()
+      setMaterials(result.data)
+    } catch (error) {
+      console.error('Error:', error)
+      setError('Gagal mengambil data materi')
+    }
+  }
+
+  const removeFile = () => setUploadedFile(null)
+
+  const handleMaterialSelect = (material: any) => {
+    setSelectedMaterial(material.name)
+    setIsDropdownOpen(false)
+    if (!studiedMaterials.find((m) => m.id === material.id))
+      setStudiedMaterials([...studiedMaterials, material])
+  }
+
+  const handleRemoveMaterial = (id: string) => {
+    setStudiedMaterials(studiedMaterials.filter((m) => m.id !== id))
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedMaterial || (!progressText && !uploadedFile)) {
+      setError('Silakan pilih materi dan isi progres belajar')
+      setShowSnackbar(true)
+      setTimeout(() => setShowSnackbar(false), 3000)
+      return
+    }
+
+    if (isSubmitting) return
+    setIsSubmitting(true)
+
+    const materialIds = studiedMaterials.map((m) => m.id)
+
+    if (!navigator.onLine) {
+      localStorage.setItem(
+        'offline_summary',
+        JSON.stringify({ materialIds, progressText }),
+      )
+      console.log('📴 Data disimpan offline:', { materialIds, progressText })
+      setError(
+        '📴 Kamu sedang offline. Progres disimpan di perangkat dan akan dikirim otomatis saat online.',
+      )
+      setShowSnackbar(true)
+      setTimeout(() => setShowSnackbar(false), 4000)
+      setIsSubmitting(false)
+      return
+    }
+
+    await submitSummary(materialIds, progressText)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f3f6ff] via-[#fafafa] to-white px-6 pt-16 md:pt-34 pb-24 md:pb-4">
